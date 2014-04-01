@@ -12,7 +12,7 @@ import (
 const (
 	ansiEraseDisplay = "\033[2J"
 	ansiResetCursor  = "\033[H"
-	carriageReturn   = '\015'
+	carriageReturn   = "\015"
 )
 
 var originalSttyState bytes.Buffer
@@ -31,6 +31,16 @@ func setSttyState(state *bytes.Buffer) (err error) {
 	return cmd.Run()
 }
 
+func drawInitialScreen() (err error) {
+	_, err = io.WriteString(os.Stdout, ansiEraseDisplay)
+	if err != nil {
+		return err
+	}
+	_, err = io.WriteString(os.Stdout, ansiResetCursor)
+
+	return err
+}
+
 func main() {
 	err := getSttyState(&originalSttyState)
 	if err != nil {
@@ -41,11 +51,7 @@ func main() {
 	setSttyState(bytes.NewBufferString("cbreak"))
 	setSttyState(bytes.NewBufferString("-echo"))
 
-	_, err = io.WriteString(os.Stdout, ansiEraseDisplay)
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = io.WriteString(os.Stdout, ansiResetCursor)
+	err = drawInitialScreen()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +71,7 @@ func main() {
 		case 4, 13:
 			// Return or Ctrl-D
 			fmt.Println("Result:")
-			fmt.Printf("%c%s\n", carriageReturn, string(input[:len(input)]))
+			fmt.Printf("%s%s\n", carriageReturn, string(input[:len(input)]))
 		default:
 			input = append(input, b...)
 			fmt.Printf("%c", b[0])
