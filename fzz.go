@@ -41,6 +41,12 @@ func drawInitialScreen() (err error) {
 	return err
 }
 
+func setCursorPos(line int, col int) (err error) {
+	str := fmt.Sprintf("\033[%d;%dH", line + 1, col + 1)
+	_, err = io.WriteString(os.Stdout, str)
+	return err
+}
+
 func main() {
 	err := getSttyState(&originalSttyState)
 	if err != nil {
@@ -61,9 +67,6 @@ func main() {
 	for {
 		os.Stdin.Read(b)
 		switch b[0] {
-		case 27:
-			// Escape
-			fmt.Printf("Escape")
 		case 127:
 			// Backspace
 			fmt.Printf("%s", "\b \b")
@@ -73,8 +76,17 @@ func main() {
 			fmt.Println("Result:")
 			fmt.Printf("%s%s\n", carriageReturn, string(input[:len(input)]))
 		default:
+			// Everything else
 			input = append(input, b...)
 			fmt.Printf("%c", b[0])
 		}
+
+		iname := fmt.Sprintf("*%s*", input[:len(input)])
+		out, err := exec.Command("find", ".", "-iname", iname).Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("\n%s", out)
+		setCursorPos(0, len(input))
 	}
 }
