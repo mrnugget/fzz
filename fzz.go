@@ -46,7 +46,7 @@ func drawInitialScreen() (err error) {
 }
 
 func setCursorPos(line int, col int) (err error) {
-	str := fmt.Sprintf("\033[%d;%dH", line + 1, col + 1)
+	str := fmt.Sprintf("\033[%d;%dH", line+1, col+1)
 	_, err = io.WriteString(os.Stdout, str)
 	return err
 }
