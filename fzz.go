@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"syscall"
+	"unsafe"
 )
 
 const (
@@ -16,6 +18,8 @@ const (
 )
 
 var originalSttyState bytes.Buffer
+var winRows uint16
+var winCols uint16
 
 func getSttyState(state *bytes.Buffer) (err error) {
 	cmd := exec.Command("stty", "-g")
@@ -45,6 +49,24 @@ func setCursorPos(line int, col int) (err error) {
 	str := fmt.Sprintf("\033[%d;%dH", line + 1, col + 1)
 	_, err = io.WriteString(os.Stdout, str)
 	return err
+}
+
+type winsize struct {
+	rows, cols, xpixel, ypixel uint16
+}
+
+func getWinsize() winsize {
+	ws := winsize{}
+	syscall.Syscall(syscall.SYS_IOCTL,
+		uintptr(0), uintptr(syscall.TIOCGWINSZ),
+		uintptr(unsafe.Pointer(&ws)))
+	return ws
+}
+
+func init() {
+	ws := getWinsize()
+	winRows = ws.rows
+	winCols = ws.cols
 }
 
 func main() {
