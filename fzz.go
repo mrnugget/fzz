@@ -81,6 +81,15 @@ func main() {
 
 	var input []byte = make([]byte, 0)
 	var b []byte = make([]byte, 1)
+
+	// TODO: Do not print results and input to STDOUT, only to TTY, only print
+	// selected result to STDOUT
+
+	// TODO: Run command in the background, draw as long as no new input given
+	// if input is given, cancel command in background
+
+	// TODO: Only print as many result lines as we have lines on the screen
+
 	for {
 		// Clear screen and set cursor to first row, first col
 		err = drawInitialScreen()
@@ -114,6 +123,9 @@ func main() {
 			fmt.Println("Result:")
 			fmt.Printf("%s%s\n", carriageReturn, string(input[:len(input)]))
 		default:
+			// TODO: Default is wrong here. Only append printable characters to
+			// input
+
 			// Everything else
 			input = append(input, b...)
 			fmt.Printf("%c", b[0])
