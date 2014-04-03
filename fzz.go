@@ -79,14 +79,30 @@ func main() {
 	setSttyState(bytes.NewBufferString("cbreak"))
 	setSttyState(bytes.NewBufferString("-echo"))
 
-	err = drawInitialScreen()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	var input []byte = make([]byte, 0)
 	var b []byte = make([]byte, 1)
 	for {
+		// Clear screen and set cursor to first row, first col
+		err = drawInitialScreen()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Print prompt with already typed input
+		prompt := fmt.Sprintf(">> %s", input[:len(input)])
+		fmt.Printf("%s", prompt)
+
+		// Print results
+		iname := fmt.Sprintf("*%s*", input[:len(input)])
+		out, err := exec.Command("find", ".", "-iname", iname).Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("\n%s", out)
+
+		// Jump back to last typing position
+		setCursorPos(0, len(prompt))
+
 		os.Stdin.Read(b)
 		switch b[0] {
 		case 127:
@@ -102,13 +118,5 @@ func main() {
 			input = append(input, b...)
 			fmt.Printf("%c", b[0])
 		}
-
-		iname := fmt.Sprintf("*%s*", input[:len(input)])
-		out, err := exec.Command("find", ".", "-iname", iname).Output()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("\n%s", out)
-		setCursorPos(0, len(input))
 	}
 }
