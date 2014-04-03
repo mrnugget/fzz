@@ -116,19 +116,20 @@ func main() {
 		switch b[0] {
 		case 127:
 			// Backspace
-			fmt.Printf("%s", "\b \b")
-			input = input[:len(input)-1]
+			if len(input) > 0 {
+				input = input[:len(input)-1]
+			}
 		case 4, 13:
 			// Return or Ctrl-D
 			fmt.Println("Result:")
 			fmt.Printf("%s%s\n", carriageReturn, string(input[:len(input)]))
+			return
 		default:
 			// TODO: Default is wrong here. Only append printable characters to
 			// input
 
 			// Everything else
 			input = append(input, b...)
-			fmt.Printf("%c", b[0])
 		}
 	}
 }
