@@ -102,6 +102,8 @@ func main() {
 		fmt.Printf("%s", prompt)
 
 		// Print results
+		// TODO: move this in a goroutine, give it a quit-channel, stream the output
+		// to the current position (line after prompt)
 		iname := fmt.Sprintf("*%s*", input[:len(input)])
 		out, err := exec.Command("find", ".", "-iname", iname).Output()
 		if err != nil {
@@ -128,6 +130,8 @@ func main() {
 			// TODO: Default is wrong here. Only append printable characters to
 			// input
 
+			// TODO: Send a signal through the quit channel to the command in the background,
+			// to cancel it
 			// Everything else
 			input = append(input, b...)
 		}
