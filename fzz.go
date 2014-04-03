@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -101,6 +102,8 @@ func main() {
 		prompt := fmt.Sprintf(">> %s", input[:len(input)])
 		fmt.Printf("%s", prompt)
 
+		fmt.Printf("\n")
+
 		// Print results
 		// TODO: move this in a goroutine, give it a quit-channel, stream the output
 		// to the current position (line after prompt)
@@ -109,7 +112,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("\n%s", out)
+		outb := bytes.NewBuffer(out)
+		outr := bufio.NewReader(outb)
+		for i := 0; i < int(winRows)-2; i++ {
+			line, err := outr.ReadBytes('\n')
+			if err != nil && err != io.EOF {
+				log.Fatal(err)
+			}
+			fmt.Printf("%s", line)
+		}
 
 		// Jump back to last typing position
 		setCursorPos(0, len(prompt))
