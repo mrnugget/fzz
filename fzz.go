@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bufio"
+	// "bufio"
 	"bytes"
 	"fmt"
-	"io"
+	// "io"
 	"log"
 	"os"
 	"os/exec"
@@ -104,46 +104,69 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TODO: Clean this up. This is a mess.
 	var input []byte = make([]byte, 0)
 	var b []byte = make([]byte, 1)
 	var out []byte
-
-	// TODO: Do not print results and input to STDOUT, only to TTY, only print
-	// selected result to STDOUT
-
-	// TODO: Run command in the background, draw as long as no new input given
-	// if input is given, cancel command in background
 
 	for {
 		tty.resetScreen()
 		tty.printPrompt(input[:len(input)])
 
+		var quit chan bool = make(chan bool)
 		if len(input) > 0 {
-			// TODO: move this in a goroutine, give it a quit-channel, stream the output
-			// to the current position (line after prompt)
+			go func() {
+				var ch chan string = make(chan string)
 
-			fmt.Fprintf(tty, "\n")
-			arg := fmt.Sprintf("%s", input[:len(input)])
-			out, err = exec.Command("ag", arg).Output()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			outb := bytes.NewBuffer(out)
-			outr := bufio.NewReader(outb)
-			for i := 1; i < int(winRows)-1; i++ {
-				line, err := outr.ReadBytes('\n')
-				if err != nil && err != io.EOF {
+				arg := fmt.Sprintf("%s", input[:len(input)])
+				cmd := exec.Command("ag", arg)
+				cmdstdout, err := cmd.StdoutPipe()
+				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Fprintf(tty, "%s", line)
-			}
+				err = cmd.Start()
+				if err != nil {
+					log.Fatal(err)
+				}
+				go func() {
+					buf := make([]byte, 1024)
+					for {
+						n, err := cmdstdout.Read(buf)
+						if n != 0 {
+							ch <- string(buf[:n])
+						}
+						if err != nil {
+							break
+						}
+					}
+					close(ch)
+				}()
 
-			// Jump back to last typing position
-			tty.cursorAfterPrompt(len(input))
+				fmt.Fprintf(tty, "\n")
+
+				for {
+					printed := 0
+					select {
+					case str, ok := <-ch:
+						if !ok {
+							break
+						}
+						if printed < int(winRows)-2 {
+							fmt.Fprint(tty, str)
+							printed++
+						}
+					case <-quit:
+						fmt.Fprintf(tty, "killed")
+						cmd.Process.Kill()
+						break
+					}
+				}
+				// Jump back to last typing position
+				tty.cursorAfterPrompt(len(input))
+			}()
 		}
 
-		tty.Read(b)
+		os.Stdin.Read(b)
 		switch b[0] {
 		case 127:
 			// Backspace
@@ -152,16 +175,22 @@ func main() {
 			}
 		case 4, 10, 13:
 			// Ctrl-D, line feed, carriage return
+			// TODO: this is probably wrong, since we need to wait for the cmd
+			// in the bg to finish
 			fmt.Fprint(os.Stdout, string(out))
 			return
 		default:
 			// TODO: Default is wrong here. Only append printable characters to
 			// input
-
-			// TODO: Send a signal through the quit channel to the command in the background,
-			// to cancel it
-			// Everything else
 			input = append(input, b...)
+		}
+
+		// Non-blocking sent to quit channel.
+		if len(input) > 0 {
+			select {
+			case quit <- true:
+			default:
+			}
 		}
 	}
 }
