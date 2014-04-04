@@ -114,8 +114,6 @@ func main() {
 	// TODO: Run command in the background, draw as long as no new input given
 	// if input is given, cancel command in background
 
-	// TODO: Only print as many result lines as we have lines on the screen
-
 	for {
 		tty.resetScreen()
 		tty.printPrompt(input[:len(input)])
