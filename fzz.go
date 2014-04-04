@@ -64,12 +64,12 @@ type TTY struct {
 
 // Clears the screen and sets the cursor to first row, first column
 func (t *TTY) resetScreen() {
-	fmt.Fprint(t, ansiEraseDisplay+ansiResetCursor)
+	fmt.Fprint(t.File, ansiEraseDisplay+ansiResetCursor)
 }
 
 // Print prompt with `in`
 func (t *TTY) printPrompt(in []byte) {
-	fmt.Fprintf(t, t.prompt+"%s", in)
+	fmt.Fprintf(t.File, t.prompt+"%s", in)
 }
 
 // Positions the cursor after the prompt and `inlen` colums to the right
@@ -79,7 +79,7 @@ func (t *TTY) cursorAfterPrompt(inlen int) {
 
 // Sets the cursor to `line` and `col`
 func (t *TTY) setCursorPos(line int, col int) {
-	fmt.Fprintf(t, "\033[%d;%dH", line+1, col+1)
+	fmt.Fprintf(t.File, "\033[%d;%dH", line+1, col+1)
 }
 
 func init() {
