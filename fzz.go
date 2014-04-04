@@ -93,6 +93,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// TODO: this needs to be run when the process is interrupted
 	defer setSttyState(&originalSttyState)
 
 	setSttyState(bytes.NewBufferString("cbreak"))
