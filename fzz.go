@@ -22,6 +22,18 @@ var originalSttyState bytes.Buffer
 var winRows uint16
 var winCols uint16
 
+type winsize struct {
+	rows, cols, xpixel, ypixel uint16
+}
+
+func getWinsize() winsize {
+	ws := winsize{}
+	syscall.Syscall(syscall.SYS_IOCTL,
+		uintptr(0), uintptr(syscall.TIOCGWINSZ),
+		uintptr(unsafe.Pointer(&ws)))
+	return ws
+}
+
 func getSttyState(state *bytes.Buffer) (err error) {
 	cmd := exec.Command("stty", "-g")
 	cmd.Stdin = os.Stdin
@@ -36,32 +48,38 @@ func setSttyState(state *bytes.Buffer) (err error) {
 	return cmd.Run()
 }
 
-func drawInitialScreen() (err error) {
-	_, err = io.WriteString(os.Stdout, ansiEraseDisplay)
+func NewTTY() (t *TTY, err error) {
+	fh, err := os.OpenFile("/dev/tty", os.O_RDWR, 0666)
 	if err != nil {
-		return err
+		return
 	}
-	_, err = io.WriteString(os.Stdout, ansiResetCursor)
-
-	return err
+	t = &TTY{fh, ">> "}
+	return
 }
 
-func setCursorPos(line int, col int) (err error) {
-	str := fmt.Sprintf("\033[%d;%dH", line+1, col+1)
-	_, err = io.WriteString(os.Stdout, str)
-	return err
+type TTY struct {
+	*os.File
+	prompt string
 }
 
-type winsize struct {
-	rows, cols, xpixel, ypixel uint16
+// Clears the screen and sets the cursor to first row, first column
+func (t *TTY) resetScreen() {
+	fmt.Fprint(t, ansiEraseDisplay+ansiResetCursor)
 }
 
-func getWinsize() winsize {
-	ws := winsize{}
-	syscall.Syscall(syscall.SYS_IOCTL,
-		uintptr(0), uintptr(syscall.TIOCGWINSZ),
-		uintptr(unsafe.Pointer(&ws)))
-	return ws
+// Print prompt with `in`
+func (t *TTY) printPrompt(in []byte) {
+	fmt.Fprintf(t, t.prompt+"%s", in)
+}
+
+// Positions the cursor after the prompt and `inlen` colums to the right
+func (t *TTY) cursorAfterPrompt(inlen int) {
+	t.setCursorPos(0, len(t.prompt)+inlen)
+}
+
+// Sets the cursor to `line` and `col`
+func (t *TTY) setCursorPos(line int, col int) {
+	fmt.Fprintf(t, "\033[%d;%dH", line+1, col+1)
 }
 
 func init() {
@@ -80,6 +98,11 @@ func main() {
 	setSttyState(bytes.NewBufferString("cbreak"))
 	setSttyState(bytes.NewBufferString("-echo"))
 
+	tty, err := NewTTY()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var input []byte = make([]byte, 0)
 	var b []byte = make([]byte, 1)
 
@@ -92,42 +115,35 @@ func main() {
 	// TODO: Only print as many result lines as we have lines on the screen
 
 	for {
-		// Clear screen and set cursor to first row, first col
-		err = drawInitialScreen()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Print prompt with already typed input
-		prompt := fmt.Sprintf(">> %s", input[:len(input)])
-		fmt.Printf("%s", prompt)
+		tty.resetScreen()
+		tty.printPrompt(input[:len(input)])
 
 		if len(input) > 0 {
-			fmt.Printf("\n")
-
-			// Print results
 			// TODO: move this in a goroutine, give it a quit-channel, stream the output
 			// to the current position (line after prompt)
+
+			fmt.Fprintf(tty, "\n")
 			arg := fmt.Sprintf("%s", input[:len(input)])
 			out, err := exec.Command("ag", arg).Output()
 			if err != nil {
 				log.Fatal(err)
 			}
+
 			outb := bytes.NewBuffer(out)
 			outr := bufio.NewReader(outb)
-			for i := 0; i < int(winRows)-2; i++ {
+			for i := 1; i < int(winRows)-1; i++ {
 				line, err := outr.ReadBytes('\n')
 				if err != nil && err != io.EOF {
 					log.Fatal(err)
 				}
-				fmt.Printf("%s", line)
+				fmt.Fprintf(tty, "%s", line)
 			}
 
 			// Jump back to last typing position
-			setCursorPos(0, len(prompt))
+			tty.cursorAfterPrompt(len(input))
 		}
 
-		os.Stdin.Read(b)
+		tty.Read(b)
 		switch b[0] {
 		case 127:
 			// Backspace
@@ -136,8 +152,8 @@ func main() {
 			}
 		case 4, 13:
 			// Return or Ctrl-D
-			fmt.Println("Result:")
-			fmt.Printf("%s%s\n", carriageReturn, string(input[:len(input)]))
+			// fmt.Println("Result:")
+			// fmt.Printf("%s%s\n", carriageReturn, string(input[:len(input)]))
 			return
 		default:
 			// TODO: Default is wrong here. Only append printable characters to
