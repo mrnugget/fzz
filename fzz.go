@@ -106,6 +106,7 @@ func main() {
 
 	var input []byte = make([]byte, 0)
 	var b []byte = make([]byte, 1)
+	var out []byte
 
 	// TODO: Do not print results and input to STDOUT, only to TTY, only print
 	// selected result to STDOUT
@@ -125,7 +126,7 @@ func main() {
 
 			fmt.Fprintf(tty, "\n")
 			arg := fmt.Sprintf("%s", input[:len(input)])
-			out, err := exec.Command("ag", arg).Output()
+			out, err = exec.Command("ag", arg).Output()
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -151,10 +152,9 @@ func main() {
 			if len(input) > 0 {
 				input = input[:len(input)-1]
 			}
-		case 4, 13:
-			// Return or Ctrl-D
-			// fmt.Println("Result:")
-			// fmt.Printf("%s%s\n", carriageReturn, string(input[:len(input)]))
+		case 4, 10, 13:
+			// Ctrl-D, line feed, carriage return
+			fmt.Fprint(os.Stdout, string(out))
 			return
 		default:
 			// TODO: Default is wrong here. Only append printable characters to
