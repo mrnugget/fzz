@@ -1,10 +1,10 @@
 package main
 
 import (
-	// "bufio"
+	"bufio"
 	"bytes"
 	"fmt"
-	// "io"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -124,45 +124,52 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
+				cmdreader := bufio.NewReader(cmdstdout)
+
 				err = cmd.Start()
 				if err != nil {
 					log.Fatal(err)
 				}
+
 				go func() {
-					buf := make([]byte, 1024)
 					for {
-						n, err := cmdstdout.Read(buf)
-						if n != 0 {
-							ch <- string(buf[:n])
-						}
-						if err != nil {
+						line, err := cmdreader.ReadBytes('\n')
+						if err != nil || err == io.EOF {
 							break
 						}
+						ch <- string(line)
 					}
 					close(ch)
 				}()
 
 				fmt.Fprintf(tty, "\n")
 
+				printed := 0
 				for {
-					printed := 0
 					select {
 					case str, ok := <-ch:
 						if !ok {
-							break
+							tty.cursorAfterPrompt(len(input))
+							return
 						}
-						if printed < int(winRows)-2 {
-							fmt.Fprint(tty, str)
-							printed++
+
+						printed++
+						if len(str) > int(winCols) {
+							fmt.Fprintf(tty, "%s", str[:int(winCols)])
+						} else {
+							fmt.Fprintf(tty, "%s", str)
+						}
+
+						if printed > int(winRows)-3 {
+							tty.cursorAfterPrompt(len(input))
+							return
 						}
 					case <-quit:
-						fmt.Fprintf(tty, "killed")
 						cmd.Process.Kill()
-						break
+						tty.cursorAfterPrompt(len(input))
+						return
 					}
 				}
-				// Jump back to last typing position
-				tty.cursorAfterPrompt(len(input))
 			}()
 		}
 
