@@ -82,6 +82,24 @@ func (t *TTY) setCursorPos(line int, col int) {
 	fmt.Fprintf(t.File, "\033[%d;%dH", line+1, col+1)
 }
 
+func readCmdStdout(stdout io.ReadCloser) <-chan string {
+	ch := make(chan string)
+	cmdreader := bufio.NewReader(stdout)
+
+	go func() {
+		for {
+			line, err := cmdreader.ReadBytes('\n')
+			if err != nil || err == io.EOF {
+				break
+			}
+			ch <- string(line)
+		}
+		close(ch)
+	}()
+
+	return ch
+}
+
 func init() {
 	ws := getWinsize()
 	winRows = ws.rows
@@ -113,33 +131,22 @@ func main() {
 		tty.printPrompt(input[:len(input)])
 
 		var quit chan bool = make(chan bool)
+
 		if len(input) > 0 {
 			go func() {
-				var ch chan string = make(chan string)
-
 				arg := fmt.Sprintf("%s", input[:len(input)])
 				cmd := exec.Command("ag", arg)
 				cmdstdout, err := cmd.StdoutPipe()
 				if err != nil {
 					log.Fatal(err)
 				}
-				cmdreader := bufio.NewReader(cmdstdout)
+
+				ch := readCmdStdout(cmdstdout)
 
 				err = cmd.Start()
 				if err != nil {
 					log.Fatal(err)
 				}
-
-				go func() {
-					for {
-						line, err := cmdreader.ReadBytes('\n')
-						if err != nil || err == io.EOF {
-							break
-						}
-						ch <- string(line)
-					}
-					close(ch)
-				}()
 
 				fmt.Fprintf(tty, "\n")
 
