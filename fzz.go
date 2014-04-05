@@ -100,6 +100,43 @@ func readCmdStdout(stdout io.ReadCloser) <-chan string {
 	return ch
 }
 
+func runCmd(t *TTY, cmd *exec.Cmd, kill <-chan bool) {
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	ch := readCmdStdout(stdout)
+
+	err = cmd.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	printed := 0
+	for {
+		select {
+		case str, ok := <-ch:
+			if !ok {
+				return
+			}
+
+			printed++
+			if len(str) > int(winCols) {
+				fmt.Fprintf(t, "%s", str[:int(winCols)])
+			} else {
+				fmt.Fprintf(t, "%s", str)
+			}
+
+			if printed > int(winRows)-3 {
+				return
+			}
+		case <-kill:
+			cmd.Process.Kill()
+			return
+		}
+	}
+}
+
 func init() {
 	ws := getWinsize()
 	winRows = ws.rows
@@ -133,49 +170,15 @@ func main() {
 		var quit chan bool = make(chan bool)
 
 		if len(input) > 0 {
+			fmt.Fprintf(tty, "\n")
+
 			go func() {
 				arg := fmt.Sprintf("%s", input[:len(input)])
 				cmd := exec.Command("ag", arg)
-				cmdstdout, err := cmd.StdoutPipe()
-				if err != nil {
-					log.Fatal(err)
-				}
 
-				ch := readCmdStdout(cmdstdout)
+				runCmd(tty, cmd, quit)
 
-				err = cmd.Start()
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				fmt.Fprintf(tty, "\n")
-
-				printed := 0
-				for {
-					select {
-					case str, ok := <-ch:
-						if !ok {
-							tty.cursorAfterPrompt(len(input))
-							return
-						}
-
-						printed++
-						if len(str) > int(winCols) {
-							fmt.Fprintf(tty, "%s", str[:int(winCols)])
-						} else {
-							fmt.Fprintf(tty, "%s", str)
-						}
-
-						if printed > int(winRows)-3 {
-							tty.cursorAfterPrompt(len(input))
-							return
-						}
-					case <-quit:
-						cmd.Process.Kill()
-						tty.cursorAfterPrompt(len(input))
-						return
-					}
-				}
+				tty.cursorAfterPrompt(len(input))
 			}()
 		}
 
