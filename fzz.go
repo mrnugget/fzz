@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -82,59 +80,7 @@ func (t *TTY) setCursorPos(line int, col int) {
 	fmt.Fprintf(t.File, "\033[%d;%dH", line+1, col+1)
 }
 
-func readCmdStdout(stdout io.ReadCloser) <-chan string {
-	ch := make(chan string)
-	cmdreader := bufio.NewReader(stdout)
-
-	go func() {
-		for {
-			line, err := cmdreader.ReadBytes('\n')
-			if err != nil || err == io.EOF {
-				break
-			}
-			ch <- string(line)
-		}
-		close(ch)
-	}()
-
-	return ch
-}
-
 func runCmd(t *TTY, cmd *exec.Cmd, kill <-chan bool) {
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	ch := readCmdStdout(stdout)
-
-	err = cmd.Start()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	printed := 0
-	for {
-		select {
-		case str, ok := <-ch:
-			if !ok {
-				return
-			}
-
-			printed++
-			if len(str) > int(winCols) {
-				fmt.Fprintf(t, "%s", str[:int(winCols)])
-			} else {
-				fmt.Fprintf(t, "%s", str)
-			}
-
-			if printed > int(winRows)-3 {
-				return
-			}
-		case <-kill:
-			cmd.Process.Kill()
-			return
-		}
-	}
 }
 
 func init() {
@@ -154,9 +100,20 @@ func main() {
 	setSttyState(bytes.NewBufferString("cbreak"))
 	setSttyState(bytes.NewBufferString("-echo"))
 
+	cmdTemplate := "ag {{}}"
+	placeholder := "{{}}"
+
 	tty, err := NewTTY()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	runner := &Runner{
+		target:      tty,
+		maxCol:      int(winCols),
+		maxRow:      int(winRows) - 3,
+		template:    cmdTemplate,
+		placeholder: placeholder,
 	}
 
 	// TODO: Clean this up. This is a mess.
@@ -173,11 +130,7 @@ func main() {
 			fmt.Fprintf(tty, "\n")
 
 			go func() {
-				arg := fmt.Sprintf("%s", input[:len(input)])
-				cmd := exec.Command("ag", arg)
-
-				runCmd(tty, cmd, quit)
-
+				runner.runWithInput(input[:len(input)], quit)
 				tty.cursorAfterPrompt(len(input))
 			}()
 		}
