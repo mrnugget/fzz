@@ -139,8 +139,10 @@ func main() {
 		switch b[0] {
 		case 127:
 			// Backspace
-			if len(input) > 0 {
+			if len(input) > 1 {
 				input = input[:len(input)-1]
+			} else if len(input) == 1 {
+				input = nil
 			}
 		case 4, 10, 13:
 			// Ctrl-D, line feed, carriage return
