@@ -108,10 +108,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	printer := NewPrinter(tty, int(winCols), int(winRows)-3)
+
 	runner := &Runner{
-		target:      tty,
-		maxCol:      int(winCols),
-		maxRow:      int(winRows) - 3,
+		printer:     printer,
 		template:    cmdTemplate,
 		placeholder: placeholder,
 	}

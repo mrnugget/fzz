@@ -1,25 +1,47 @@
 package main
 
 import "bytes"
+import "fmt"
+import "io"
 import "testing"
 
-func TestRunWithInput(t *testing.T) {
-	testTarget := new(bytes.Buffer)
+type TestPrinter struct {
+	buffer io.Writer
+	reset bool
+}
+
+func (t *TestPrinter) Print(line string) (n int, err error) {
+	return fmt.Fprint(t.buffer, line)
+}
+
+func (t *TestPrinter) Reset() {
+	t.reset = true
+}
+
+func TestPrinterIntegration(t *testing.T) {
+	buf := new(bytes.Buffer)
+	testPrinter := &TestPrinter{
+		buffer: buf,
+		reset: false,
+	}
+
 	kill := make(chan bool)
 	testInput := []byte{'f', 'o', 'o'}
 
 	runner := &Runner{
-		target: testTarget,
+		printer: testPrinter,
 		template: "echo {{}} bar",
 		placeholder: "{{}}",
-		maxCol: 80,
-		maxRow: 20,
 	}
 
 	runner.runWithInput(testInput, kill)
 
-	output := testTarget.String()
+	output := buf.String()
 	if output != "foo bar\n" {
 		t.Errorf("unexpected output: %v", output)
+	}
+
+	if !testPrinter.reset {
+		t.Errorf("printer not reset")
 	}
 }

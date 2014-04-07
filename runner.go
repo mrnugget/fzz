@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os/exec"
@@ -10,12 +9,10 @@ import (
 )
 
 type Runner struct {
-	target      io.Writer
+	printer     PrintResetter
 	current     *exec.Cmd
 	template    string
 	placeholder string
-	maxCol      int
-	maxRow      int
 }
 
 func (r *Runner) runWithInput(input []byte, kill <-chan bool) {
@@ -32,28 +29,19 @@ func (r *Runner) runWithInput(input []byte, kill <-chan bool) {
 		log.Fatal(err)
 	}
 
-	printed := 0
 	for {
 		select {
 		case str, ok := <-ch:
 			if !ok {
 				cmd.Wait()
+				r.printer.Reset()
 				return
 			}
-
-			printed++
-			if len(str) > r.maxCol {
-				fmt.Fprintf(r.target, "%s", str[:r.maxCol])
-			} else {
-				fmt.Fprintf(r.target, "%s", str)
-			}
-
-			if printed > r.maxRow {
-				return
-			}
+			r.printer.Print(str)
 		case <-kill:
 			cmd.Process.Kill()
 			cmd.Wait()
+			r.printer.Reset()
 			return
 		}
 	}

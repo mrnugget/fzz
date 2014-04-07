@@ -6,6 +6,11 @@ import (
 	"sync"
 )
 
+type PrintResetter interface{
+	Print(string) (int, error)
+	Reset()
+}
+
 func NewPrinter(target io.Writer, maxCol, maxRow int) *Printer {
 	return &Printer{
 		target:  target,
@@ -27,6 +32,7 @@ type Printer struct {
 func (p *Printer) Print(line string) (n int, err error) {
 	p.mutex.Lock()
 	if p.printed == p.maxRow {
+		p.mutex.Unlock()
 		return 0, nil
 	}
 
