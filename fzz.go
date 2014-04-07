@@ -125,6 +125,8 @@ func main() {
 		tty.printPrompt(input[:len(input)])
 
 		if len(input) > 0 {
+			runner.killCurrent()
+
 			fmt.Fprintf(tty, "\n")
 
 			go func() {
@@ -150,11 +152,6 @@ func main() {
 			// TODO: Default is wrong here. Only append printable characters to
 			// input
 			input = append(input, b...)
-		}
-
-		// Non-blocking sent to quit channel.
-		if len(input) > 0 {
-			runner.killCurrent()
 		}
 	}
 }
