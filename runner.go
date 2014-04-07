@@ -37,6 +37,7 @@ func (r *Runner) runWithInput(input []byte, kill <-chan bool) {
 		select {
 		case str, ok := <-ch:
 			if !ok {
+				cmd.Wait()
 				return
 			}
 
@@ -52,6 +53,7 @@ func (r *Runner) runWithInput(input []byte, kill <-chan bool) {
 			}
 		case <-kill:
 			cmd.Process.Kill()
+			cmd.Wait()
 			return
 		}
 	}
