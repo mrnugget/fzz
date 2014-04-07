@@ -48,7 +48,7 @@ func (r *Runner) runWithInput(input []byte, kill <-chan bool) {
 }
 
 func (r *Runner) cmdWithInput(input string) *exec.Cmd {
-	line := strings.Replace(r.template, "{{}}", input, -1)
+	line := strings.Replace(r.template, r.placeholder, input, -1)
 	splitted := strings.Split(line, " ")
 
 	return exec.Command(splitted[0], splitted[1:len(splitted)]...)
