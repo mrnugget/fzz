@@ -15,7 +15,7 @@ type Runner struct {
 	placeholder string
 }
 
-func (r *Runner) runWithInput(input []byte, kill <-chan bool) {
+func (r *Runner) runWithInput(input []byte) {
 	cmd := r.cmdWithInput(string(input))
 
 	stdout, err := cmd.StdoutPipe()
@@ -29,22 +29,13 @@ func (r *Runner) runWithInput(input []byte, kill <-chan bool) {
 		log.Fatal(err)
 	}
 
-	for {
-		select {
-		case str, ok := <-ch:
-			if !ok {
-				cmd.Wait()
-				r.printer.Reset()
-				return
-			}
-			r.printer.Print(str)
-		case <-kill:
-			cmd.Process.Kill()
-			cmd.Wait()
-			r.printer.Reset()
-			return
-		}
+	r.current = cmd
+
+	for str := range ch {
+		r.printer.Print(str)
 	}
+	cmd.Wait()
+	r.printer.Reset()
 }
 
 func (r *Runner) cmdWithInput(input string) *exec.Cmd {
@@ -70,4 +61,15 @@ func (r *Runner) readCmdStdout(stdout io.ReadCloser) <-chan string {
 	}()
 
 	return ch
+}
+
+func (r *Runner) killCurrent() {
+	if r.current != nil {
+		r.current.Process.Kill()
+		r.current.Wait()
+
+		r.current = nil
+	}
+
+	r.printer.Reset()
 }

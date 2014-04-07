@@ -124,13 +124,11 @@ func main() {
 		tty.resetScreen()
 		tty.printPrompt(input[:len(input)])
 
-		var quit chan bool = make(chan bool)
-
 		if len(input) > 0 {
 			fmt.Fprintf(tty, "\n")
 
 			go func() {
-				runner.runWithInput(input[:len(input)], quit)
+				runner.runWithInput(input[:len(input)])
 				tty.cursorAfterPrompt(len(input))
 			}()
 		}
@@ -156,10 +154,7 @@ func main() {
 
 		// Non-blocking sent to quit channel.
 		if len(input) > 0 {
-			select {
-			case quit <- true:
-			default:
-			}
+			runner.killCurrent()
 		}
 	}
 }
