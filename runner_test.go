@@ -25,7 +25,6 @@ func TestPrinterIntegration(t *testing.T) {
 		reset:  false,
 	}
 
-	kill := make(chan bool)
 	testInput := []byte{'f', 'o', 'o'}
 
 	runner := &Runner{
@@ -34,7 +33,7 @@ func TestPrinterIntegration(t *testing.T) {
 		placeholder: "{{}}",
 	}
 
-	runner.runWithInput(testInput, kill)
+	runner.runWithInput(testInput)
 
 	output := buf.String()
 	if output != "foo bar\n" {
