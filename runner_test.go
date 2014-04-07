@@ -7,7 +7,7 @@ import "testing"
 
 type TestPrinter struct {
 	buffer io.Writer
-	reset bool
+	reset  bool
 }
 
 func (t *TestPrinter) Print(line string) (n int, err error) {
@@ -22,15 +22,15 @@ func TestPrinterIntegration(t *testing.T) {
 	buf := new(bytes.Buffer)
 	testPrinter := &TestPrinter{
 		buffer: buf,
-		reset: false,
+		reset:  false,
 	}
 
 	kill := make(chan bool)
 	testInput := []byte{'f', 'o', 'o'}
 
 	runner := &Runner{
-		printer: testPrinter,
-		template: "echo {{}} bar",
+		printer:     testPrinter,
+		template:    "echo {{}} bar",
 		placeholder: "{{}}",
 	}
 

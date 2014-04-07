@@ -71,4 +71,3 @@ func (r *Runner) readCmdStdout(stdout io.ReadCloser) <-chan string {
 
 	return ch
 }
-

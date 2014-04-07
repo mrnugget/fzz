@@ -84,7 +84,7 @@ func TestReset(t *testing.T) {
 	}
 
 	output := testTarget.String()
-	expected := testLine+testLine
+	expected := testLine + testLine
 
 	if output != expected {
 		t.Errorf("wrong output written. expected: %q, got: %q", expected, output)

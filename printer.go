@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type PrintResetter interface{
+type PrintResetter interface {
 	Print(string) (int, error)
 	Reset()
 }
@@ -45,6 +45,7 @@ func (p *Printer) Print(line string) (n int, err error) {
 	if err == nil {
 		p.printed++
 	}
+
 	p.mutex.Unlock()
 
 	return
