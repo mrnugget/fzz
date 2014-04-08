@@ -33,6 +33,7 @@ func getWinsize() winsize {
 	return ws
 }
 
+// TODO: This is wrong: stdin should be the TTY
 func getSttyState(state *bytes.Buffer) (err error) {
 	cmd := exec.Command("stty", "-g")
 	cmd.Stdin = os.Stdin
@@ -40,6 +41,7 @@ func getSttyState(state *bytes.Buffer) (err error) {
 	return cmd.Run()
 }
 
+// TODO: This is wrong: stdin and stdout should be the TTY
 func setSttyState(state *bytes.Buffer) (err error) {
 	cmd := exec.Command("stty", state.String())
 	cmd.Stdin = os.Stdin
