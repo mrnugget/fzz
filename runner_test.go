@@ -44,3 +44,41 @@ func TestPrinterIntegration(t *testing.T) {
 		t.Errorf("printer not reset")
 	}
 }
+
+func TestOutputBuffering(t *testing.T) {
+	printbuf := new(bytes.Buffer)
+	testPrinter := &TestPrinter{
+		buffer: printbuf,
+		reset:  false,
+	}
+
+	testInput := []byte{'f', 'o', 'o'}
+
+	runner := &Runner{
+		printer:     testPrinter,
+		template:    "echo {{}} bar",
+		placeholder: "{{}}",
+	}
+
+	runner.runWithInput(testInput)
+
+	printedOutput := printbuf.String()
+	if printedOutput != "foo bar\n" {
+		t.Errorf("unexpected printedOutput: %v", printedOutput)
+	}
+
+	currentbuf := new(bytes.Buffer)
+	n, err := runner.writeCmdStdout(currentbuf)
+	if err != nil {
+		t.Errorf("writeCmdStdout failed. error: %s", err)
+	}
+
+	if n != int64(len(printedOutput)) {
+		t.Errorf("writeCmdStdout: wrong number of bytes")
+	}
+
+	currentOutput := currentbuf.String()
+	if currentOutput != "foo bar\n" {
+		t.Errorf("unexpected output: %v", currentOutput)
+	}
+}

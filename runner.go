@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"log"
 	"os/exec"
@@ -13,6 +14,7 @@ type Runner struct {
 	current     *exec.Cmd
 	template    string
 	placeholder string
+	buf			*bytes.Buffer
 }
 
 func (r *Runner) runWithInput(input []byte) {
@@ -29,10 +31,12 @@ func (r *Runner) runWithInput(input []byte) {
 		log.Fatal(err)
 	}
 
+	r.buf = new(bytes.Buffer)
 	r.current = cmd
 
 	for str := range ch {
 		r.printer.Print(str)
+		r.buf.WriteString(str)
 	}
 	cmd.Wait()
 	r.printer.Reset()
@@ -61,6 +65,10 @@ func (r *Runner) readCmdStdout(stdout io.ReadCloser) <-chan string {
 	}()
 
 	return ch
+}
+
+func (r *Runner) writeCmdStdout(out io.Writer) (n int64, err error) {
+	return io.Copy(out, r.buf)
 }
 
 func (r *Runner) killCurrent() {
