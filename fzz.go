@@ -83,9 +83,6 @@ func (t *TTY) setCursorPos(line int, col int) {
 	fmt.Fprintf(t.File, "\033[%d;%dH", line+1, col+1)
 }
 
-func runCmd(t *TTY, cmd *exec.Cmd, kill <-chan bool) {
-}
-
 func init() {
 	ws := getWinsize()
 	winRows = ws.rows
