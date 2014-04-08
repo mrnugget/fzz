@@ -14,6 +14,7 @@ const (
 	ansiEraseDisplay = "\033[2J"
 	ansiResetCursor  = "\033[H"
 	carriageReturn   = "\015"
+	defaultPrompt = ">> "
 )
 
 var originalSttyState bytes.Buffer
@@ -51,7 +52,7 @@ func NewTTY() (t *TTY, err error) {
 	if err != nil {
 		return
 	}
-	t = &TTY{fh, ">> "}
+	t = &TTY{fh, defaultPrompt}
 	return
 }
 
