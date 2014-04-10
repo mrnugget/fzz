@@ -67,6 +67,7 @@ type TTY struct {
 func (t *TTY) resetScreen() {
 	// TODO: this is probably wrong since it does not remove the clutter from
 	// the tty, but only pushes it to the top where its hidden
+	// Instead of using reset screen, we need to go back and redraw the screen.
 	fmt.Fprint(t.File, ansiEraseDisplay+ansiResetCursor)
 }
 
