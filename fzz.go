@@ -147,6 +147,7 @@ func main() {
 			}
 		case 4, 10, 13:
 			// Ctrl-D, line feed, carriage return
+			tty.resetScreen()
 			runner.writeCmdStdout(os.Stdout)
 			return
 		default:
