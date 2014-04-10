@@ -136,7 +136,7 @@ func main() {
 			}()
 		}
 
-		os.Stdin.Read(b)
+		tty.Read(b)
 		switch b[0] {
 		case 127:
 			// Backspace
