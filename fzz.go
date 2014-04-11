@@ -2,11 +2,13 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -89,6 +91,12 @@ func init() {
 	ws := getWinsize()
 	winRows = ws.rows
 	winCols = ws.cols
+
+	flag.Parse()
+	if len(flag.Args()) < 2 {
+		fmt.Printf("usage: fzz [command with placeholder]")
+		os.Exit(1)
+	}
 }
 
 func main() {
@@ -114,7 +122,7 @@ func main() {
 	tty.setSttyState(bytes.NewBufferString("cbreak"))
 	tty.setSttyState(bytes.NewBufferString("-echo"))
 
-	cmdTemplate := "ag {{}}"
+	cmdTemplate := strings.Join(flag.Args(), " ")
 	placeholder := "{{}}"
 
 	printer := NewPrinter(tty, int(winCols), int(winRows)-3)
@@ -139,6 +147,8 @@ func main() {
 			fmt.Fprintf(tty, "\n")
 
 			go func() {
+				// TODO: This needs to return an error if the underlying command
+				// cannot be run. then print the sterr of the command and quit.
 				runner.runWithInput(input[:len(input)])
 				tty.cursorAfterPrompt(len(input))
 			}()
