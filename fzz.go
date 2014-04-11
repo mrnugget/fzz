@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"syscall"
 	"unsafe"
 )
@@ -100,8 +101,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// TODO: this needs to be run when the process is interrupted
 	defer tty.setSttyState(&originalSttyState)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		tty.setSttyState(&originalSttyState)
+		os.Exit(1)
+	}()
 
 	tty.setSttyState(bytes.NewBufferString("cbreak"))
 	tty.setSttyState(bytes.NewBufferString("-echo"))
