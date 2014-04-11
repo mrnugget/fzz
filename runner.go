@@ -24,7 +24,14 @@ func (r *Runner) runWithInput(input []byte) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ch := r.readCmdStdout(stdout)
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	outch := r.streamOutput(stdout)
+	errch := r.streamOutput(stderr)
 
 	err = cmd.Start()
 	if err != nil {
@@ -34,11 +41,20 @@ func (r *Runner) runWithInput(input []byte) {
 	r.buf = new(bytes.Buffer)
 	r.current = cmd
 
-	for str := range ch {
+	for str := range outch {
 		r.printer.Print(str)
 		r.buf.WriteString(str)
 	}
-	cmd.Wait()
+
+	err = cmd.Wait()
+	if err != nil {
+		for str := range errch {
+			r.printer.Print(str)
+		}
+		r.printer.Print(err.Error())
+		return
+	}
+
 	r.printer.Reset()
 }
 
@@ -49,7 +65,7 @@ func (r *Runner) cmdWithInput(input string) *exec.Cmd {
 	return exec.Command(splitted[0], splitted[1:len(splitted)]...)
 }
 
-func (r *Runner) readCmdStdout(stdout io.ReadCloser) <-chan string {
+func (r *Runner) streamOutput(stdout io.ReadCloser) <-chan string {
 	ch := make(chan string)
 	cmdreader := bufio.NewReader(stdout)
 
