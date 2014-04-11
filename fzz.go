@@ -103,7 +103,8 @@ func main() {
 	// TODO: this needs to be run when the process is interrupted
 	defer tty.setSttyState(&originalSttyState)
 
-	tty.setSttyState(bytes.NewBufferString("cbreak -echo"))
+	tty.setSttyState(bytes.NewBufferString("cbreak"))
+	tty.setSttyState(bytes.NewBufferString("-echo"))
 
 	cmdTemplate := "ag {{}}"
 	placeholder := "{{}}"
