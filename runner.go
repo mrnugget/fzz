@@ -14,7 +14,7 @@ type Runner struct {
 	current     *exec.Cmd
 	template    string
 	placeholder string
-	buf			*bytes.Buffer
+	buf         *bytes.Buffer
 }
 
 func (r *Runner) runWithInput(input []byte) {
