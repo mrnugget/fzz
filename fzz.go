@@ -117,9 +117,8 @@ func main() {
 		buf:         new(bytes.Buffer),
 	}
 
-	// TODO: Clean this up. This is a mess.
-	var input []byte = make([]byte, 0)
-	var b []byte = make([]byte, 1)
+	input := make([]byte, 0)
+	b := make([]byte, 1)
 
 	for {
 		tty.resetScreen()
