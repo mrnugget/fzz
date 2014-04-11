@@ -91,15 +91,15 @@ func init() {
 	ws := getWinsize()
 	winRows = ws.rows
 	winCols = ws.cols
+}
 
+func main() {
 	flag.Parse()
 	if len(flag.Args()) < 2 {
 		fmt.Printf("usage: fzz [command with placeholder]")
 		os.Exit(1)
 	}
-}
 
-func main() {
 	tty, err := NewTTY()
 	if err != nil {
 		log.Fatal(err)
