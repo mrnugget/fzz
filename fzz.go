@@ -131,7 +131,6 @@ func main() {
 		printer:     printer,
 		template:    cmdTemplate,
 		placeholder: placeholder,
-		buf:         new(bytes.Buffer),
 	}
 
 	input := make([]byte, 0)
