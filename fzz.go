@@ -146,8 +146,6 @@ func main() {
 			fmt.Fprintf(tty, "\n")
 
 			go func() {
-				// TODO: This needs to return an error if the underlying command
-				// cannot be run. then print the sterr of the command and quit.
 				runner.runWithInput(input[:len(input)])
 				tty.cursorAfterPrompt(len(input))
 			}()
