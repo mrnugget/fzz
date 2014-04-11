@@ -29,3 +29,12 @@
     * Ctrl-K: move the selection up
     * Backspace: delete the last character from the input and rerun the command
     * Ctrl-W: delete the last word from the input and rerun the command
+
+
+# Tricks
+
+Use it as interactive project search in vim
+
+```
+:set grepprg=fzz\ ag\ \{\{\}\}
+```
