@@ -33,22 +33,6 @@ func getWinsize() winsize {
 	return ws
 }
 
-// TODO: This is wrong: stdin should be the TTY
-func getSttyState(state *bytes.Buffer) (err error) {
-	cmd := exec.Command("stty", "-g")
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = state
-	return cmd.Run()
-}
-
-// TODO: This is wrong: stdin and stdout should be the TTY
-func setSttyState(state *bytes.Buffer) (err error) {
-	cmd := exec.Command("stty", state.String())
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	return cmd.Run()
-}
-
 func NewTTY() (t *TTY, err error) {
 	fh, err := os.OpenFile("/dev/tty", os.O_RDWR, 0666)
 	if err != nil {
@@ -61,6 +45,20 @@ func NewTTY() (t *TTY, err error) {
 type TTY struct {
 	*os.File
 	prompt string
+}
+
+func (t *TTY) getSttyState(state *bytes.Buffer) (err error) {
+	cmd := exec.Command("stty", "-g")
+	cmd.Stdin = t.File
+	cmd.Stdout = state
+	return cmd.Run()
+}
+
+func (t *TTY) setSttyState(state *bytes.Buffer) (err error) {
+	cmd := exec.Command("stty", state.String())
+	cmd.Stdin = t.File
+	cmd.Stdout = t.File
+	return cmd.Run()
 }
 
 // Clears the screen and sets the cursor to first row, first column
@@ -93,23 +91,22 @@ func init() {
 }
 
 func main() {
-	err := getSttyState(&originalSttyState)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// TODO: this needs to be run when the process is interrupted
-	defer setSttyState(&originalSttyState)
-
-	setSttyState(bytes.NewBufferString("cbreak"))
-	setSttyState(bytes.NewBufferString("-echo"))
-
-	cmdTemplate := "ag {{}}"
-	placeholder := "{{}}"
-
 	tty, err := NewTTY()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = tty.getSttyState(&originalSttyState)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// TODO: this needs to be run when the process is interrupted
+	defer tty.setSttyState(&originalSttyState)
+
+	tty.setSttyState(bytes.NewBufferString("cbreak -echo"))
+
+	cmdTemplate := "ag {{}}"
+	placeholder := "{{}}"
 
 	printer := NewPrinter(tty, int(winCols), int(winRows)-3)
 
