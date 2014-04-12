@@ -18,14 +18,14 @@ func (t *TestPrinter) Reset() {
 	t.reset = true
 }
 
+var testInput []byte = []byte{'f', 'o', 'o'}
+
 func TestPrinterIntegration(t *testing.T) {
 	buf := new(bytes.Buffer)
 	testPrinter := &TestPrinter{
 		buffer: buf,
 		reset:  false,
 	}
-
-	testInput := []byte{'f', 'o', 'o'}
 
 	runner := &Runner{
 		printer:     testPrinter,
@@ -51,8 +51,6 @@ func TestOutputBuffering(t *testing.T) {
 		buffer: printbuf,
 		reset:  false,
 	}
-
-	testInput := []byte{'f', 'o', 'o'}
 
 	runner := &Runner{
 		printer:     testPrinter,
