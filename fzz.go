@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	ansiEraseDisplay = "\033[2J"
-	ansiResetCursor  = "\033[H"
-	carriageReturn   = "\015"
-	defaultPrompt    = ">> "
+	ansiEraseDisplay   = "\033[2J"
+	ansiResetCursor    = "\033[H"
+	carriageReturn     = "\015"
+	defaultPrompt      = ">> "
+	defaultPlaceholder = "{{}}"
 )
 
 var originalSttyState bytes.Buffer
@@ -123,16 +124,12 @@ func main() {
 	tty.setSttyState(bytes.NewBufferString("-echo"))
 
 	cmdTemplate := strings.Join(flag.Args(), " ")
-	placeholder := "{{}}"
-
 	printer := NewPrinter(tty, int(winCols), int(winRows)-3)
-
 	runner := &Runner{
 		printer:     printer,
 		template:    cmdTemplate,
-		placeholder: placeholder,
+		placeholder: defaultPlaceholder,
 	}
-
 	input := make([]byte, 0)
 	b := make([]byte, 1)
 
