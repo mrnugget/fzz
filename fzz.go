@@ -22,8 +22,8 @@ const (
 )
 
 var originalSttyState bytes.Buffer
-var winRows uint16
-var winCols uint16
+var winRows int
+var winCols int
 
 type winsize struct {
 	rows, cols, xpixel, ypixel uint16
@@ -90,8 +90,8 @@ func (t *TTY) setCursorPos(line int, col int) {
 
 func init() {
 	ws := getWinsize()
-	winRows = ws.rows
-	winCols = ws.cols
+	winRows = int(ws.rows)
+	winCols = int(ws.cols)
 }
 
 func main() {
@@ -124,7 +124,7 @@ func main() {
 	tty.setSttyState(bytes.NewBufferString("-echo"))
 
 	cmdTemplate := strings.Join(flag.Args(), " ")
-	printer := NewPrinter(tty, int(winCols), int(winRows)-3)
+	printer := NewPrinter(tty, winCols, winRows-3)
 	runner := &Runner{
 		printer:     printer,
 		template:    cmdTemplate,
