@@ -1,22 +1,11 @@
-# NOT READY YET
+# fzz
+
+**Do one thing, do it well — multiple times!**
+
+![fzz-gif-cast](http://recordit.co/FCnvkoyAKV.gif)
 
 # TODO
 
-* Take commands like this:
-
-    fzz "ag {{}} /my/dir"
-
-  Where "{{}}" is a placeholder that should not be escaped by the shell
-  evaluating the command. I am not sure about which placeholder to use yet. We
-  have to see what's practical. First thought: `find` uses `{}` so that is no free
-  to use, but would have been perfect.
-
-* It then shows an empty screen with a input line at the top. 
-* As soon as the user enters a character the specified command will be run and
-  the output displayed in all the rows from 2-N. When running the command the
-  placeholder {{}} will be replaced by the entered character.
-* If the users enters more than one character, those will get added to the input
-  and the command will be run again with the updated input.
 * If the user enters a new line, the selected line will be printed and the
   program terminates
 * There will be special key combinations and keys that will not get added to the
