@@ -6,21 +6,23 @@
 
 # TODO
 
-* If the user enters a new line, the selected line will be printed and the
-  program terminates
-* There will be special key combinations and keys that will not get added to the
-  input but trigger special behaviour. Those will be:
-    * Ctrl-C: quit and do nothing
-    * Ctrl-D: stop accepting input and print the currently selected line
-    * Return/New-line: stop accepting input and print the currently selected
-      line
-    * Ctrl-J: move the selection down
-    * Ctrl-K: move the selection up
-    * Backspace: delete the last character from the input and rerun the command
-    * Ctrl-W: delete the last word from the input and rerun the command
+* Get rid of the TODOs in the code
+* Buffer the stdin of fzz and pass it to the specified command
+* Add the ability to specify a first input value:
+  * `{{}}` doesn't specify any input and waits for the user
+  * `{{foobar}}` tells fzz to run the specified command with the initial input
+    of `foobar`
+* Change how fzz is printing its output to the TTY: instead of clearing the
+  screen, jump to the first line, right after the input and rewrite the visible
+  lines (padded so that all the columns are used and the previous output is not
+  visible anymore)
+* Maybe add some keybindings:
+  * Ctrl-W: delete the last word from the input and rerun the command
+  * Maybe selection of a line with Ctrl-J and Ctrl-K and the only print the
+    selected line.
 
 
-# Tricks
+# Use it in Vim!
 
 Use it as interactive project search in vim
 
