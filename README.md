@@ -27,6 +27,11 @@ Run this, change the input and **fzz** runs the command again, this time with th
 new input and gives you what the command wrote to STDOUT.
 
 Press **return** and **fzz** will print the last output to its own STDOUT.
+That means it works with pipes too:
+
+```
+fzz grep {{}} *.go | head -n 1 | awk -F":" '{print $1}'
+```
 
 ### Use it in Vim!
 
@@ -34,6 +39,16 @@ Use it as interactive project search in vim
 
 ```
 :set grepprg=fzz\ ag\ \{\{\}\}
+```
+
+### Interactively search through files with ag and open them in your favorite editor
+
+Put this in your shell config and configure it to use your favorite editor:
+
+```bash
+vimfzz() {
+  vim $(fzz ag {{}} | awk -F":" '{print $1}' | uniq)
+}
 ```
 
 ## Installation
