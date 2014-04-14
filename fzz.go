@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -128,6 +129,21 @@ func main() {
 		template:    cmdTemplate,
 		placeholder: defaultPlaceholder,
 	}
+
+	stdinstat, err := os.Stdin.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// os.Stdin is a pipe
+	if stdinstat.Mode()&os.ModeNamedPipe != 0 {
+		// TODO: maybe use io.ReadAll here, and use []byte as runner.stdinbuf
+		stdinbuf := new(bytes.Buffer)
+		io.Copy(stdinbuf, os.Stdin)
+		runner.stdinbuf = stdinbuf
+	} else {
+		runner.stdinbuf = nil
+	}
+
 	input := make([]byte, 0)
 	b := make([]byte, 1)
 

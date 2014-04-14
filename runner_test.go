@@ -97,3 +97,30 @@ func TestOutputBuffering(t *testing.T) {
 		t.Errorf("unexpected output: %v", currentOutput)
 	}
 }
+
+func TestStdin(t *testing.T) {
+	buf := new(bytes.Buffer)
+	testPrinter := &TestPrinter{
+		buffer: buf,
+		reset:  false,
+	}
+
+	stdinbuf := new(bytes.Buffer)
+	stdinbuf.WriteString("foo\nbar")
+
+	runner := &Runner{
+		printer:     testPrinter,
+		template:    "grep {{}}",
+		placeholder: "{{}}",
+		stdinbuf:    stdinbuf,
+	}
+
+	runner.runWithInput(testInput)
+	// Run it two times to see that the stdin is the same every time
+	runner.runWithInput(testInput)
+
+	printedOutput := buf.String()
+	if printedOutput != "foo\nfoo\n" {
+		t.Errorf("unexpected printedOutput: %q", printedOutput)
+	}
+}

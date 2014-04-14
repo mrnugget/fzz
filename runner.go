@@ -14,7 +14,8 @@ type Runner struct {
 	current     *exec.Cmd
 	template    string
 	placeholder string
-	buf         *bytes.Buffer
+	stdoutbuf   *bytes.Buffer
+	stdinbuf    *bytes.Buffer
 }
 
 func (r *Runner) runWithInput(input []byte) {
@@ -33,17 +34,21 @@ func (r *Runner) runWithInput(input []byte) {
 	outch := r.streamOutput(stdout)
 	errch := r.streamOutput(stderr)
 
+	if r.stdinbuf != nil {
+		cmd.Stdin = bytes.NewBuffer(r.stdinbuf.Bytes())
+	}
+
 	err = cmd.Start()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	r.buf = new(bytes.Buffer)
+	r.stdoutbuf = new(bytes.Buffer)
 	r.current = cmd
 
 	for str := range outch {
 		r.printer.Print(str)
-		r.buf.WriteString(str)
+		r.stdoutbuf.WriteString(str)
 	}
 
 	err = cmd.Wait()
@@ -83,7 +88,7 @@ func (r *Runner) streamOutput(stdout io.ReadCloser) <-chan string {
 }
 
 func (r *Runner) writeCmdStdout(out io.Writer) (n int64, err error) {
-	return io.Copy(out, r.buf)
+	return io.Copy(out, r.stdoutbuf)
 }
 
 func (r *Runner) killCurrent() {
