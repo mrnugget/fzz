@@ -45,6 +45,27 @@ func TestPrinterIntegration(t *testing.T) {
 	}
 }
 
+func TestErrorPrinting(t *testing.T) {
+	buf := new(bytes.Buffer)
+	testPrinter := &TestPrinter{
+		buffer: buf,
+		reset:  false,
+	}
+
+	runner := &Runner{
+		printer:     testPrinter,
+		template:    "cat {{}}",
+		placeholder: "{{}}",
+	}
+
+	runner.runWithInput([]byte{'d', 'o', 'e', 's', 'n', 'o', 't'})
+
+	output := buf.String()
+	if output != "cat: doesnot: No such file or directory\n" {
+		t.Errorf("unexpected output: %q", output)
+	}
+}
+
 func TestOutputBuffering(t *testing.T) {
 	printbuf := new(bytes.Buffer)
 	testPrinter := &TestPrinter{

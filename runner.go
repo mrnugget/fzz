@@ -51,7 +51,6 @@ func (r *Runner) runWithInput(input []byte) {
 		for str := range errch {
 			r.printer.Print(str)
 		}
-		r.printer.Print(err.Error())
 		return
 	}
 
