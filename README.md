@@ -36,6 +36,13 @@ Use it as interactive project search in vim
 :set grepprg=fzz\ ag\ \{\{\}\}
 ```
 
+## Installation
+
+```
+go get github.com/mrnugget/fzz
+```
+
+
 ## TODO
 
 * Get rid of the TODOs in the code
