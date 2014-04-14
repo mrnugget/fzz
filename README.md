@@ -2,9 +2,41 @@
 
 **Do one thing, do it well — multiple times!**
 
+**fzz** allows you to change the input of a single command interactively. Have a
+look and pay close attention to the bee's knees here:
+
 ![fzz-gif-cast](http://recordit.co/FCnvkoyAKV.gif)
 
-# TODO
+## Usage
+
+The general usage pattern is this:
+
+```bash
+fzz [command with {{}} placeholder]
+```
+
+Examples:
+
+```
+fzz grep {{}} *.go
+fzz ag {{}}
+fzz find . -iname "*{{}}*"
+```
+
+Run this, change the input and **fzz** runs the command again, this time with the
+new input and gives you what the command wrote to STDOUT.
+
+Press **return** and **fzz** will print the last output to its own STDOUT.
+
+### Use it in Vim!
+
+Use it as interactive project search in vim
+
+```
+:set grepprg=fzz\ ag\ \{\{\}\}
+```
+
+## TODO
 
 * Get rid of the TODOs in the code
 * Buffer the stdin of fzz and pass it to the specified command
@@ -22,10 +54,3 @@
     selected line.
 
 
-# Use it in Vim!
-
-Use it as interactive project search in vim
-
-```
-:set grepprg=fzz\ ag\ \{\{\}\}
-```
