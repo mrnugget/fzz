@@ -29,14 +29,6 @@ type winsize struct {
 	rows, cols, xpixel, ypixel uint16
 }
 
-func getWinsize() winsize {
-	ws := winsize{}
-	syscall.Syscall(syscall.SYS_IOCTL,
-		uintptr(0), uintptr(syscall.TIOCGWINSZ),
-		uintptr(unsafe.Pointer(&ws)))
-	return ws
-}
-
 func NewTTY() (t *TTY, err error) {
 	fh, err := os.OpenFile("/dev/tty", os.O_RDWR, 0666)
 	if err != nil {
@@ -65,6 +57,14 @@ func (t *TTY) setSttyState(state *bytes.Buffer) (err error) {
 	return cmd.Run()
 }
 
+func (t *TTY) getWinsize() winsize {
+	ws := winsize{}
+	syscall.Syscall(syscall.SYS_IOCTL,
+		t.Fd(), uintptr(syscall.TIOCGWINSZ),
+		uintptr(unsafe.Pointer(&ws)))
+	return ws
+}
+
 // Clears the screen and sets the cursor to first row, first column
 func (t *TTY) resetScreen() {
 	// TODO: this is probably wrong since it does not remove the clutter from
@@ -88,12 +88,6 @@ func (t *TTY) setCursorPos(line int, col int) {
 	fmt.Fprintf(t.File, "\033[%d;%dH", line+1, col+1)
 }
 
-func init() {
-	ws := getWinsize()
-	winRows = int(ws.rows)
-	winCols = int(ws.cols)
-}
-
 func main() {
 	flag.Parse()
 	if len(flag.Args()) < 2 {
@@ -105,6 +99,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	ws := tty.getWinsize()
+	winRows = int(ws.rows)
+	winCols = int(ws.cols)
 
 	err = tty.getSttyState(&originalSttyState)
 	if err != nil {
