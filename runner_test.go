@@ -67,9 +67,9 @@ func TestErrorPrinting(t *testing.T) {
 }
 
 func TestOutputBuffering(t *testing.T) {
-	printbuf := new(bytes.Buffer)
+	buf := new(bytes.Buffer)
 	testPrinter := &TestPrinter{
-		buffer: printbuf,
+		buffer: buf,
 		reset:  false,
 	}
 
@@ -81,23 +81,19 @@ func TestOutputBuffering(t *testing.T) {
 
 	runner.runWithInput(testInput)
 
-	printedOutput := printbuf.String()
+	printedOutput := buf.String()
 	if printedOutput != "foo bar\n" {
 		t.Errorf("unexpected printedOutput: %v", printedOutput)
 	}
 
-	currentbuf := new(bytes.Buffer)
-	n, err := runner.writeCmdStdout(currentbuf)
+	outbuf := new(bytes.Buffer)
+	_, err := runner.writeCmdStdout(outbuf)
 	if err != nil {
 		t.Errorf("writeCmdStdout failed. error: %s", err)
 	}
 
-	if n != int64(len(printedOutput)) {
-		t.Errorf("writeCmdStdout: wrong number of bytes")
-	}
-
-	currentOutput := currentbuf.String()
-	if currentOutput != "foo bar\n" {
+	currentOutput := outbuf.String()
+	if currentOutput != printedOutput {
 		t.Errorf("unexpected output: %v", currentOutput)
 	}
 }
