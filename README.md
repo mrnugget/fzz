@@ -60,6 +60,8 @@ go get github.com/mrnugget/fzz
 
 ## TODO
 
+* Add -version flag and add usage information when run without command
+* Man page
 * Get rid of the TODOs in the code
 * Buffer the stdin of fzz and pass it to the specified command
 * Add the ability to specify a first input value:
