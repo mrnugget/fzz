@@ -36,6 +36,10 @@ func (p *Printer) Print(line string) (n int, err error) {
 		return 0, nil
 	}
 
+	if p.printed == 0 {
+		fmt.Fprintf(p.target, "\n")
+	}
+
 	if len(line) > p.maxCol {
 		n, err = fmt.Fprintf(p.target, "%s\n", line[:p.maxCol])
 	} else {

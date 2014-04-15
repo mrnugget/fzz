@@ -151,8 +151,6 @@ func main() {
 		if len(input) > 0 {
 			runner.killCurrent()
 
-			fmt.Fprintf(tty, "\n")
-
 			go func() {
 				runner.runWithInput(input[:len(input)])
 				tty.cursorAfterPrompt(len(input))

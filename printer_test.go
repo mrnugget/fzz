@@ -19,7 +19,7 @@ func TestPrintNormal(t *testing.T) {
 	}
 
 	output := testTarget.String()
-	if output != testLine {
+	if output != "\n"+testLine {
 		t.Errorf("wrong output written")
 	}
 }
@@ -36,7 +36,7 @@ func TestPrintTooLong(t *testing.T) {
 		}
 	}
 
-	if testTarget.String() != testLine {
+	if testTarget.String() != "\n"+testLine {
 		t.Errorf("wrong output written: %s", testTarget.String())
 	}
 }
@@ -47,7 +47,7 @@ func TestPrintTooWide(t *testing.T) {
 	printer := NewPrinter(testTarget, 3, 1)
 
 	expectedN := printer.maxCol + 1
-	expectedStr := "foo\n"
+	expectedStr := "\nfoo\n"
 
 	n, err := printer.Print(testLine)
 	if err != nil {
@@ -84,7 +84,7 @@ func TestReset(t *testing.T) {
 	}
 
 	output := testTarget.String()
-	expected := testLine + testLine
+	expected := "\n" + testLine + "\n" + testLine
 
 	if output != expected {
 		t.Errorf("wrong output written. expected: %q, got: %q", expected, output)
