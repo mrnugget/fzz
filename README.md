@@ -41,6 +41,9 @@ Use it as interactive project search in vim
 :set grepprg=fzz\ ag\ \{\{\}\}
 ```
 
+Then use `:grep` in Vim to start it. **fzz** will then fill the quickfix window
+with its results.
+
 ### Interactively search through files with ag and open them in your favorite editor
 
 Put this in your shell config and configure it to use your favorite editor:
