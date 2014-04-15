@@ -23,8 +23,6 @@ const (
 )
 
 var originalSttyState bytes.Buffer
-var winRows int
-var winCols int
 
 type winsize struct {
 	rows, cols, xpixel, ypixel uint16
@@ -35,13 +33,15 @@ func NewTTY() (t *TTY, err error) {
 	if err != nil {
 		return
 	}
-	t = &TTY{fh, defaultPrompt}
+	t = &TTY{File: fh, prompt: defaultPrompt}
+	t.getWinsize()
 	return
 }
 
 type TTY struct {
 	*os.File
-	prompt string
+	prompt     string
+	rows, cols int
 }
 
 func (t *TTY) getSttyState(state *bytes.Buffer) (err error) {
@@ -58,12 +58,13 @@ func (t *TTY) setSttyState(state *bytes.Buffer) (err error) {
 	return cmd.Run()
 }
 
-func (t *TTY) getWinsize() winsize {
+func (t *TTY) getWinsize() {
 	ws := winsize{}
 	syscall.Syscall(syscall.SYS_IOCTL,
 		t.Fd(), uintptr(syscall.TIOCGWINSZ),
 		uintptr(unsafe.Pointer(&ws)))
-	return ws
+	t.rows = int(ws.rows)
+	t.cols = int(ws.cols)
 }
 
 // Clears the screen and sets the cursor to first row, first column
@@ -101,10 +102,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ws := tty.getWinsize()
-	winRows = int(ws.rows)
-	winCols = int(ws.cols)
-
 	err = tty.getSttyState(&originalSttyState)
 	if err != nil {
 		log.Fatal(err)
@@ -123,7 +120,7 @@ func main() {
 	tty.setSttyState(bytes.NewBufferString("-echo"))
 
 	cmdTemplate := strings.Join(flag.Args(), " ")
-	printer := NewPrinter(tty, winCols, winRows-3)
+	printer := NewPrinter(tty, tty.cols, tty.rows-3)
 	runner := &Runner{
 		printer:     printer,
 		template:    cmdTemplate,
