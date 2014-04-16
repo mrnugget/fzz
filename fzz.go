@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	carriageReturn     = "\015"
 	defaultPlaceholder = "{{}}"
 )
 
