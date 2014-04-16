@@ -17,6 +17,15 @@ const (
 
 var originalSttyState bytes.Buffer
 
+func isPipe(f *os.File) bool {
+	s, err := f.Stat()
+	if err != nil {
+		return false
+	}
+
+	return s.Mode()&os.ModeNamedPipe != 0
+}
+
 func main() {
 	flag.Parse()
 	if len(flag.Args()) < 2 {
@@ -54,12 +63,7 @@ func main() {
 		placeholder: defaultPlaceholder,
 	}
 
-	stdinstat, err := os.Stdin.Stat()
-	if err != nil {
-		log.Fatal(err)
-	}
-	// os.Stdin is a pipe
-	if stdinstat.Mode()&os.ModeNamedPipe != 0 {
+	if isPipe(os.Stdin) {
 		// TODO: maybe use io.ReadAll here, and use []byte as runner.stdinbuf
 		stdinbuf := new(bytes.Buffer)
 		io.Copy(stdinbuf, os.Stdin)
