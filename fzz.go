@@ -24,7 +24,7 @@ Usage:
 
 	fzz command
 
-The command has to include the placeholder '{{}}'.
+The command MUST include the placeholder '{{}}'.
 
 Arguments:
 
@@ -44,6 +44,15 @@ func isPipe(f *os.File) bool {
 	return s.Mode()&os.ModeNamedPipe != 0
 }
 
+func containsPlaceholder(s []string, ph string) bool {
+	for _, v := range s {
+		if v == ph {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
 	flVersion := flag.Bool("v", false, "Print fzz version and quit")
 	flag.Usage = printUsage
@@ -56,6 +65,11 @@ func main() {
 
 	if len(flag.Args()) < 2 {
 		fmt.Fprintf(os.Stderr, usage)
+		os.Exit(2)
+	}
+
+	if !containsPlaceholder(flag.Args(), defaultPlaceholder) {
+		fmt.Fprintf(os.Stderr, "No placeholder in arguments\n")
 		os.Exit(2)
 	}
 
