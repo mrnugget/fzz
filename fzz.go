@@ -26,11 +26,21 @@ func isPipe(f *os.File) bool {
 	return s.Mode()&os.ModeNamedPipe != 0
 }
 
+var usage = `fzz allows you to run a command interactively.
+
+Usage:
+
+	fzz command
+
+The command has to include the placeholder '{{}}'.
+`
+
 func main() {
 	flag.Parse()
+
 	if len(flag.Args()) < 2 {
-		fmt.Printf("usage: fzz [command with placeholder]")
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, usage)
+		os.Exit(2)
 	}
 
 	tty, err := NewTTY()
