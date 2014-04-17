@@ -11,7 +11,10 @@ import (
 	"strings"
 )
 
-const defaultPlaceholder = "{{}}"
+const (
+	VERSION            = "0.0.1"
+	defaultPlaceholder = "{{}}"
+)
 
 var originalSttyState bytes.Buffer
 
@@ -34,7 +37,13 @@ func isPipe(f *os.File) bool {
 }
 
 func main() {
+	flVersion := flag.Bool("v", false, "Print fzz version and quit")
 	flag.Parse()
+
+	if *flVersion {
+		fmt.Printf("fzz %s\n", VERSION)
+		os.Exit(2)
+	}
 
 	if len(flag.Args()) < 2 {
 		fmt.Fprintf(os.Stderr, usage)
