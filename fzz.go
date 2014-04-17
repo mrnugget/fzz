@@ -25,7 +25,15 @@ Usage:
 	fzz command
 
 The command has to include the placeholder '{{}}'.
+
+Arguments:
+
+	-v		Print version and exit
 `
+
+func printUsage() {
+	fmt.Printf(usage)
+}
 
 func isPipe(f *os.File) bool {
 	s, err := f.Stat()
@@ -38,6 +46,7 @@ func isPipe(f *os.File) bool {
 
 func main() {
 	flVersion := flag.Bool("v", false, "Print fzz version and quit")
+	flag.Usage = printUsage
 	flag.Parse()
 
 	if *flVersion {
