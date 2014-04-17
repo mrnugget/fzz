@@ -11,20 +11,9 @@ import (
 	"strings"
 )
 
-const (
-	defaultPlaceholder = "{{}}"
-)
+const defaultPlaceholder = "{{}}"
 
 var originalSttyState bytes.Buffer
-
-func isPipe(f *os.File) bool {
-	s, err := f.Stat()
-	if err != nil {
-		return false
-	}
-
-	return s.Mode()&os.ModeNamedPipe != 0
-}
 
 var usage = `fzz allows you to run a command interactively.
 
@@ -34,6 +23,15 @@ Usage:
 
 The command has to include the placeholder '{{}}'.
 `
+
+func isPipe(f *os.File) bool {
+	s, err := f.Stat()
+	if err != nil {
+		return false
+	}
+
+	return s.Mode()&os.ModeNamedPipe != 0
+}
 
 func main() {
 	flag.Parse()
