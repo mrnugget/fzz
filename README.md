@@ -7,6 +7,12 @@ look and pay close attention to the bee's knees here:
 
 ![fzz-gif-cast](http://recordit.co/FCnvkoyAKV.gif)
 
+## Installation
+
+```
+go get github.com/mrnugget/fzz
+```
+
 ## Usage
 
 The general usage pattern is this:
@@ -15,25 +21,57 @@ The general usage pattern is this:
 fzz [command with {{}} placeholder]
 ```
 
-Examples:
+Example: using **fzz** and `grep` to search through all `*.go` files in the current
+directory.
 
 ```
 fzz grep {{}} *.go
-fzz ag {{}}
-fzz find . -iname "*{{}}*"
 ```
 
-Run this, change the input and **fzz** runs the command again, this time with the
-new input and gives you what the command wrote to STDOUT.
+Running this presents you with a prompt that allows you to change the what
+`grep` will use as its search pattern by replacing `{{}}`.
 
-Press **return** and **fzz** will print the last output to its own STDOUT.
-That means it works with pipes too:
+After every change to the input **fzz** will rerun `grep` with the new input and
+show you what `grep` wrote to its STDOUT or, hopefully not, to its STDERR.
+
+Once you're happy with the presented results simply press **return** to quit
+**fzz** and have the results printed to STDOUT.
+
+Since the results will be printed to STDOUT you can use **fzz** with pipes:
 
 ```
 fzz grep {{}} *.go | head -n 1 | awk -F":" '{print $1}'
 ```
 
-### Use it in Vim!
+And even better: **fzz** buffers its STDIN and passes it on to the specified
+command. That means you can put pipes all around it:
+
+```
+grep 'func' *.go | fzz grep {{}} | head -n 1
+```
+
+## Usage Examples
+
+### Searching with ag
+
+Use **fzz** to search through your current directory with
+[the_silver_searcher](https://github.com/ggreer/the_silver_searcher)
+interactively:
+
+```
+fzz ag {{}}
+```
+
+### fzz and find for interactive file search
+
+We can combine `find` and `fzz` to interactively search for files that match our
+input pattern:
+
+```
+fzz find ./Documents -iname "*{{}}*"
+```
+
+### Use it in Vim to grep through your project
 
 Use it as interactive project search in vim
 
@@ -44,7 +82,7 @@ Use it as interactive project search in vim
 Then use `:grep` in Vim to start it. **fzz** will then fill the quickfix window
 with its results.
 
-### Interactively search through files with ag and open them in your favorite editor
+### Interactively search files and open the results in your editor
 
 Put this in your shell config and configure it to use your favorite editor:
 
@@ -53,13 +91,6 @@ vimfzz() {
   vim $(fzz ag {{}} | awk -F":" '{print $1}' | uniq)
 }
 ```
-
-## Installation
-
-```
-go get github.com/mrnugget/fzz
-```
-
 
 ## TODO
 
