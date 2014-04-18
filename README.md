@@ -64,8 +64,6 @@ go get github.com/mrnugget/fzz
 ## TODO
 
 * Man page
-* Make the usage of stty linux compatibel: at the moment the stty state does not
-  get reset to the old settings.
 * Get rid of the TODOs in the code
 * Add the ability to specify a first input value:
   * `{{}}` doesn't specify any input and waits for the user

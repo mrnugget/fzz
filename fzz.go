@@ -53,6 +53,13 @@ func containsPlaceholder(s []string, ph string) bool {
 	return false
 }
 
+func stripTrailingNewline(b *bytes.Buffer) {
+	s := b.Bytes()
+	if s[len(s)-1] == '\n' {
+		b.Truncate(b.Len()-1)
+	}
+}
+
 func main() {
 	flVersion := flag.Bool("v", false, "Print fzz version and quit")
 	flag.Usage = printUsage
@@ -82,6 +89,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	stripTrailingNewline(&originalSttyState)
 	defer tty.setSttyState(&originalSttyState)
 
 	c := make(chan os.Signal, 1)
