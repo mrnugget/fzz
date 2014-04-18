@@ -112,12 +112,8 @@ func main() {
 	}
 
 	if isPipe(os.Stdin) {
-		// TODO: maybe use io.ReadAll here, and use []byte as runner.stdinbuf
-		stdinbuf := new(bytes.Buffer)
-		io.Copy(stdinbuf, os.Stdin)
-		runner.stdinbuf = stdinbuf
-	} else {
-		runner.stdinbuf = nil
+		runner.stdinbuf = new(bytes.Buffer)
+		io.Copy(runner.stdinbuf, os.Stdin)
 	}
 
 	input := make([]byte, 0)
