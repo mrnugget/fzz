@@ -108,6 +108,4 @@ vimfzz() {
   * Ctrl-W: delete the last word from the input and rerun the command
   * Maybe selection of a line with Ctrl-J and Ctrl-K and the only print the
     selected line.
-* Do not run anything when no {{}} is given in command.
-
 
