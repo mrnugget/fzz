@@ -29,7 +29,7 @@ func TestPrinterIntegration(t *testing.T) {
 
 	runner := &Runner{
 		printer:     testPrinter,
-		template:    "echo {{}} bar",
+		template:    []string{"echo", "{{}}", "bar"},
 		placeholder: "{{}}",
 	}
 
@@ -54,7 +54,7 @@ func TestErrorPrinting(t *testing.T) {
 
 	runner := &Runner{
 		printer:     testPrinter,
-		template:    "cat {{}}",
+		template:    []string{"cat", "{{}}"},
 		placeholder: "{{}}",
 	}
 
@@ -75,7 +75,7 @@ func TestOutputBuffering(t *testing.T) {
 
 	runner := &Runner{
 		printer:     testPrinter,
-		template:    "echo {{}} bar",
+		template:    []string{"echo", "{{}}", "bar"},
 		placeholder: "{{}}",
 	}
 
@@ -110,7 +110,7 @@ func TestStdin(t *testing.T) {
 
 	runner := &Runner{
 		printer:     testPrinter,
-		template:    "grep {{}}",
+		template:    []string{"grep", "{{}}"},
 		placeholder: "{{}}",
 		stdinbuf:    stdinbuf,
 	}
