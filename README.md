@@ -109,3 +109,6 @@ vimfzz() {
   * Maybe selection of a line with Ctrl-J and Ctrl-K and the only print the
     selected line.
 
+## License
+
+MIT, see [LICENSE](LICENSE)
