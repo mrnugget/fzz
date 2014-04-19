@@ -140,7 +140,7 @@ func main() {
 		tty.Read(b)
 		switch b[0] {
 		case 8, 127:
-			// Backspace
+			// Backspace, delete
 			if len(input) > 1 {
 				input = input[:len(input)-1]
 			} else if len(input) == 1 {
