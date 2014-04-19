@@ -9,6 +9,15 @@ look and pay close attention to the bee's knees here:
 
 ## Installation
 
+### Download the binaries
+
+Download the [current release](https://github.com/mrnugget/fzz/releases) for
+your platform and copy the **fzz** binary to your `$PATH`.
+
+### Compile from source
+
+Make sure you have Go installed. Then install **fzz** from source:
+
 ```
 go get github.com/mrnugget/fzz
 ```
