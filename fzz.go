@@ -17,6 +17,7 @@ const (
 )
 
 var originalSttyState bytes.Buffer
+var placeholder string
 
 var usage = `fzz allows you to run a command interactively.
 
@@ -75,7 +76,11 @@ func main() {
 		os.Exit(2)
 	}
 
-	if !containsPlaceholder(flag.Args(), defaultPlaceholder) {
+	if placeholder = os.Getenv("FZZ_PLACEHOLDER"); placeholder == "" {
+		placeholder = defaultPlaceholder
+	}
+
+	if !containsPlaceholder(flag.Args(), placeholder) {
 		fmt.Fprintf(os.Stderr, "No placeholder in arguments\n")
 		os.Exit(2)
 	}
@@ -108,7 +113,7 @@ func main() {
 	runner := &Runner{
 		printer:     printer,
 		template:    cmdTemplate,
-		placeholder: defaultPlaceholder,
+		placeholder: placeholder,
 	}
 
 	if isPipe(os.Stdin) {
