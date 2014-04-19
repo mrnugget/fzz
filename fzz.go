@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strings"
 )
 
 const (
@@ -108,11 +107,10 @@ func main() {
 	tty.setSttyState(bytes.NewBufferString("cbreak"))
 	tty.setSttyState(bytes.NewBufferString("-echo"))
 
-	cmdTemplate := strings.Join(flag.Args(), " ")
 	printer := NewPrinter(tty, tty.cols, tty.rows-3)
 	runner := &Runner{
 		printer:     printer,
-		template:    cmdTemplate,
+		template:    flag.Args(),
 		placeholder: placeholder,
 	}
 

@@ -12,7 +12,7 @@ import (
 type Runner struct {
 	printer     PrintResetter
 	current     *exec.Cmd
-	template    string
+	template    []string
 	placeholder string
 	stdoutbuf   *bytes.Buffer
 	stdinbuf    *bytes.Buffer
@@ -63,10 +63,12 @@ func (r *Runner) runWithInput(input []byte) {
 }
 
 func (r *Runner) cmdWithInput(input string) *exec.Cmd {
-	line := strings.Replace(r.template, r.placeholder, input, -1)
-	splitted := strings.Split(line, " ")
+	argv := make([]string, len(r.template))
+	for i := range argv {
+		argv[i] = strings.Replace(r.template[i], r.placeholder, input, -1)
+	}
 
-	return exec.Command(splitted[0], splitted[1:len(splitted)]...)
+	return exec.Command(argv[0], argv[1:]...)
 }
 
 func (r *Runner) streamOutput(stdout io.ReadCloser) <-chan string {
