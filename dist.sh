@@ -11,7 +11,7 @@ for os in linux darwin; do
   echo "Building $target ..."
 
   mkdir -p dist/$target
-  go build -o dist/$target/fzz .
+  GOOS=$os go build -o dist/$target/fzz . || exit 1
   cp README.md dist/$target
   cp LICENSE dist/$target
 
