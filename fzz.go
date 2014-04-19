@@ -46,7 +46,7 @@ func isPipe(f *os.File) bool {
 
 func containsPlaceholder(s []string, ph string) bool {
 	for _, v := range s {
-		if v == ph {
+		if strings.Contains(v, ph) {
 			return true
 		}
 	}
