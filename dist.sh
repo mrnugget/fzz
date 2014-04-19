@@ -7,11 +7,11 @@ arch=$(go env GOARCH)
 go test || (echo 'Tests failed. Stopping...' && exit 1)
 
 for os in linux darwin; do
-  target="watchgopher-$version-$os-$arch"
+  target="fzz-$version-$os-$arch"
   echo "Building $target ..."
 
   mkdir -p dist/$target
-  go build -o dist/$target/watchgopher .
+  go build -o dist/$target/fzz .
   cp README.md dist/$target
   cp LICENSE dist/$target
 
