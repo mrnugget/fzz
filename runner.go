@@ -78,8 +78,8 @@ func (r *Runner) streamOutput(stdout io.ReadCloser) <-chan string {
 	go func() {
 		for {
 			line, err := cmdreader.ReadBytes('\n')
-			if line != nil {
-				ch <- string(line)
+			if s := string(line); s != "" {
+				ch <- s
 			}
 			if err != nil || err == io.EOF {
 				break

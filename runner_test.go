@@ -18,6 +18,14 @@ func (t *TestPrinter) Reset() {
 	t.reset = true
 }
 
+type TestPipe struct {
+	*bytes.Buffer
+}
+
+func (t *TestPipe) Close() (err error) {
+	return
+}
+
 var testInput []byte = []byte{'f', 'o', 'o'}
 
 func TestPrinterIntegration(t *testing.T) {
@@ -44,6 +52,53 @@ func TestPrinterIntegration(t *testing.T) {
 		t.Errorf("printer not reset")
 	}
 }
+
+func TestStreamOutput(t *testing.T) {
+	pipe := &TestPipe{bytes.NewBufferString("foo\nbar\n")}
+	runner := &Runner{}
+
+	output := make([]string, 0)
+	ch := runner.streamOutput(pipe)
+	for line := range ch {
+		output = append(output, line)
+	}
+
+	if len(output) != 2 {
+		t.Errorf("streamed output length wrong. expected: %d, actual: %d", 2, len(output))
+	}
+
+	if output[0] != "foo\n" {
+		t.Errorf("streamed output wrong. expected: %q, actual: %q", "foo\n", output[0])
+	}
+
+	if output[1] != "bar\n" {
+		t.Errorf("streamed output wrong. expected: %q, actual: %q", "bar\n", output[0])
+	}
+}
+
+func TestStreamOutputWithoutTrailingNewline(t *testing.T) {
+	pipe := &TestPipe{bytes.NewBufferString("foo\nbar")}
+	runner := &Runner{}
+
+	output := make([]string, 0)
+	ch := runner.streamOutput(pipe)
+	for line := range ch {
+		output = append(output, line)
+	}
+
+	if len(output) != 2 {
+		t.Errorf("streamed output length wrong. expected: %d, actual: %d", 2, len(output))
+	}
+
+	if output[0] != "foo\n" {
+		t.Errorf("streamed output wrong. expected: %q, actual: %q", "foo\n", output[0])
+	}
+
+	if output[1] != "bar" {
+		t.Errorf("streamed output wrong. expected: %q, actual: %q", "bar", output[0])
+	}
+}
+
 
 func TestErrorPrinting(t *testing.T) {
 	buf := new(bytes.Buffer)
