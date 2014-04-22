@@ -68,12 +68,12 @@ func main() {
 
 	if *flVersion {
 		fmt.Printf("fzz %s\n", VERSION)
-		os.Exit(2)
+		os.Exit(0)
 	}
 
 	if len(flag.Args()) < 2 {
 		fmt.Fprintf(os.Stderr, usage)
-		os.Exit(2)
+		os.Exit(1)
 	}
 
 	if placeholder = os.Getenv("FZZ_PLACEHOLDER"); placeholder == "" {
@@ -81,8 +81,8 @@ func main() {
 	}
 
 	if !containsPlaceholder(flag.Args(), placeholder) {
-		fmt.Fprintf(os.Stderr, "No placeholder in arguments\n")
-		os.Exit(2)
+		fmt.Fprintln(os.Stderr, "No placeholder in arguments")
+		os.Exit(1)
 	}
 
 	tty, err := NewTTY()
