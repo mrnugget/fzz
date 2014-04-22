@@ -108,6 +108,8 @@ func main() {
 	tty.setSttyState(bytes.NewBufferString("cbreak"))
 	tty.setSttyState(bytes.NewBufferString("-echo"))
 
+	// TODO: This -3 is a hack to make fzz work with tmux. Fix: get real window
+	// size
 	printer := NewPrinter(tty, tty.cols, tty.rows-3)
 	runner := &Runner{
 		printer:     printer,
