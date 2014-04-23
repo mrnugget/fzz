@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -26,27 +25,42 @@ func NewTTY() (t *TTY, err error) {
 	}
 	t = &TTY{File: fh, prompt: defaultPrompt}
 	t.getWinsize()
+	err = t.saveOriginalState()
 	return
 }
 
 type TTY struct {
 	*os.File
-	prompt     string
-	rows, cols int
+	prompt        string
+	rows, cols    int
+	originalState []byte
 }
 
-func (t *TTY) getSttyState(state *bytes.Buffer) (err error) {
+func (t *TTY) saveOriginalState() (err error) {
 	cmd := exec.Command("stty", "-g")
 	cmd.Stdin = t.File
-	cmd.Stdout = state
-	return cmd.Run()
+
+	t.originalState, err = cmd.Output()
+	if err != nil {
+		return err
+	}
+
+	if t.originalState[len(t.originalState)-1] == '\n' {
+		t.originalState = t.originalState[:len(t.originalState)-1]
+	}
+
+	return
 }
 
-func (t *TTY) setSttyState(state *bytes.Buffer) (err error) {
-	cmd := exec.Command("stty", state.String())
+func (t *TTY) setSttyState(argv ...string) (err error) {
+	cmd := exec.Command("stty", argv...)
 	cmd.Stdin = t.File
 	cmd.Stdout = t.File
 	return cmd.Run()
+}
+
+func (t *TTY) resetState() {
+	t.setSttyState(string(t.originalState))
 }
 
 func (t *TTY) getWinsize() {

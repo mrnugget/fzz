@@ -54,13 +54,6 @@ func containsPlaceholder(s []string, ph string) bool {
 	return false
 }
 
-func stripTrailingNewline(b *bytes.Buffer) {
-	s := b.Bytes()
-	if s[len(s)-1] == '\n' {
-		b.Truncate(b.Len()-1)
-	}
-}
-
 func main() {
 	flVersion := flag.Bool("v", false, "Print fzz version and quit")
 	flag.Usage = printUsage
@@ -89,24 +82,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	err = tty.getSttyState(&originalSttyState)
-	if err != nil {
-		log.Fatal(err)
-	}
-	stripTrailingNewline(&originalSttyState)
-	defer tty.setSttyState(&originalSttyState)
+	defer tty.resetState()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
-		tty.setSttyState(&originalSttyState)
+		tty.resetState()
 		os.Exit(1)
 	}()
-
-	tty.setSttyState(bytes.NewBufferString("cbreak"))
-	tty.setSttyState(bytes.NewBufferString("-echo"))
+	tty.setSttyState("cbreak", "-echo")
 
 	// TODO: This -3 is a hack to make fzz work with tmux. Fix: get real window
 	// size
