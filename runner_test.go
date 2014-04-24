@@ -127,11 +127,20 @@ func TestOutputBuffering(t *testing.T) {
 		buffer: buf,
 		reset:  false,
 	}
+	outbuf := new(bytes.Buffer)
 
 	runner := &Runner{
 		printer:     testPrinter,
 		template:    []string{"echo", "{{}}", "bar"},
 		placeholder: "{{}}",
+	}
+
+	n, err := runner.writeCmdStdout(outbuf)
+	if n != 0 {
+		t.Errorf("writeCmdStdout with empty buffer wrote wrong number of bytes: %d", n)
+	}
+	if err != nil {
+		t.Errorf("writeCmdStdout with empty buffer failed. error: %s", err)
 	}
 
 	runner.runWithInput(testInput)
@@ -141,8 +150,7 @@ func TestOutputBuffering(t *testing.T) {
 		t.Errorf("unexpected printedOutput: %v", printedOutput)
 	}
 
-	outbuf := new(bytes.Buffer)
-	_, err := runner.writeCmdStdout(outbuf)
+	_, err = runner.writeCmdStdout(outbuf)
 	if err != nil {
 		t.Errorf("writeCmdStdout failed. error: %s", err)
 	}

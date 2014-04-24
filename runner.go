@@ -92,7 +92,10 @@ func (r *Runner) streamOutput(stdout io.ReadCloser) <-chan string {
 }
 
 func (r *Runner) writeCmdStdout(out io.Writer) (n int64, err error) {
-	return io.Copy(out, r.stdoutbuf)
+	if r.stdoutbuf != nil {
+		n, err = io.Copy(out, r.stdoutbuf)
+	}
+	return
 }
 
 func (r *Runner) killCurrent() {
