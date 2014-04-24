@@ -54,6 +54,10 @@ func containsPlaceholder(s []string, ph string) bool {
 	return false
 }
 
+func validPlaceholder(p string) bool {
+	return len(p)%2 == 0
+}
+
 func main() {
 	flVersion := flag.Bool("v", false, "Print fzz version and quit")
 	flag.Usage = printUsage
@@ -71,6 +75,11 @@ func main() {
 
 	if placeholder = os.Getenv("FZZ_PLACEHOLDER"); placeholder == "" {
 		placeholder = defaultPlaceholder
+	}
+
+	if !validPlaceholder(placeholder) {
+		fmt.Fprintln(os.Stderr, "Placeholder is not valid, needs even number of characters")
+		os.Exit(1)
 	}
 
 	if !containsPlaceholder(flag.Args(), placeholder) {
