@@ -37,10 +37,10 @@ directory.
 fzz grep {{}} *.go
 ```
 
-Running this presents you with a prompt that allows you to change the what
-`grep` will use as its search pattern by replacing `{{}}`.
+Running this presents you with a prompt that allows you to change what `grep`
+will use as its search pattern by replacing `{{}}`.
 
-After every change to the input **fzz** will rerun `grep` with the new input and
+After every input change **fzz** will rerun `grep` with the new input and
 show you what `grep` wrote to its STDOUT or, hopefully not, to its STDERR.
 
 Once you're happy with the presented results simply press **return** to quit
@@ -52,11 +52,18 @@ Since the results will be printed to STDOUT you can use **fzz** with pipes:
 fzz grep {{}} *.go | head -n 1 | awk -F":" '{print $1}'
 ```
 
-And even better: **fzz** buffers its STDIN and passes it on to the specified
-command. That means you can put pipes all around it:
+**fzz** buffers its STDIN and passes it on to the specified command. That means
+you can put pipes all around it:
 
 ```
 grep 'func' *.go | fzz grep {{}} | head -n 1
+```
+
+If you want to change the placeholder, you can do that by specifying it with the
+environment variable `FZZ_PLACEHOLDER`:
+
+```
+FZZ_PLACEHOLDER=%% fzz grep %% *.go
 ```
 
 ## Usage Examples
