@@ -16,7 +16,6 @@ const (
 	defaultPlaceholder = "{{}}"
 )
 
-var originalSttyState bytes.Buffer
 var placeholder string
 
 var usage = `fzz allows you to run a command interactively.
