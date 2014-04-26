@@ -52,6 +52,8 @@ func (p *Printer) Print(line string) (n int, err error) {
 	}
 
 	p.mutex.Unlock()
+	return
+}
 
 func (p *Printer) printLine(line string) (n int, err error) {
 	if len(line) > p.maxCol {
