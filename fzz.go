@@ -101,9 +101,7 @@ func main() {
 	}()
 	tty.setSttyState("cbreak", "-echo")
 
-	// TODO: This -3 is a hack to make fzz work with tmux. Fix: get real window
-	// size
-	printer := NewPrinter(tty, tty.cols, tty.rows-3)
+	printer := NewPrinter(tty, tty.cols, tty.rows-1) // prompt is one row
 	runner := &Runner{
 		printer:     printer,
 		template:    flag.Args(),

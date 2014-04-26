@@ -36,8 +36,9 @@ func TestPrintTooLong(t *testing.T) {
 		}
 	}
 
-	if testTarget.String() != "\n"+testLine {
-		t.Errorf("wrong output written: %s", testTarget.String())
+	// Cut of the newline char on the last line
+	if testTarget.String() != "\n"+testLine[:len(testLine)-1] {
+		t.Errorf("wrong output written: %q", testTarget.String())
 	}
 }
 
@@ -84,7 +85,8 @@ func TestReset(t *testing.T) {
 	}
 
 	output := testTarget.String()
-	expected := "\n" + testLine + "\n" + testLine
+	// Cut of the newline char on the last line
+	expected := "\n" + testLine + testLine[:len(testLine)-1]
 
 	if output != expected {
 		t.Errorf("wrong output written. expected: %q, got: %q", expected, output)
