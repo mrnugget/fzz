@@ -12,13 +12,14 @@ import (
 )
 
 const (
-	VERSION              = "0.0.1"
-	defaultPlaceholder   = "{{}}"
-	keyBackspace         = 8
-	keyDelete            = 127
-	keyEndOfTransmission = 4
-	keyLineFeed          = 10
-	keyCarriageReturn    = 13
+	VERSION                   = "0.0.1"
+	defaultPlaceholder        = "{{}}"
+	keyBackspace              = 8
+	keyDelete                 = 127
+	keyEndOfTransmission      = 4
+	keyLineFeed               = 10
+	keyCarriageReturn         = 13
+	keyEndOfTransmissionBlock = 23
 )
 
 var placeholder string
@@ -60,6 +61,18 @@ func containsPlaceholder(s []string, ph string) bool {
 
 func validPlaceholder(p string) bool {
 	return len(p)%2 == 0
+}
+
+func removeLastWord(s []byte) []byte {
+	fields := bytes.Fields(s)
+	if len(fields) > 0 {
+		r := bytes.Join(fields[:len(fields)-1], []byte{' '})
+		if len(r) > 1 {
+			r = append(r, ' ')
+		}
+		return r
+	}
+	return []byte{}
 }
 
 func main() {
@@ -146,6 +159,8 @@ func main() {
 			tty.resetScreen()
 			runner.writeCmdStdout(os.Stdout)
 			return
+		case keyEndOfTransmissionBlock:
+			input = removeLastWord(input)
 		default:
 			// TODO: Default is wrong here. Only append printable characters to
 			// input

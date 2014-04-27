@@ -120,10 +120,8 @@ vimfzz() {
   screen, jump to the first line, right after the input and rewrite the visible
   lines (padded so that all the columns are used and the previous output is not
   visible anymore)
-* Maybe add some keybindings:
-  * Ctrl-W: delete the last word from the input and rerun the command
-  * Maybe selection of a line with Ctrl-J and Ctrl-K and the only print the
-    selected line.
+* Maybe selection of a line with Ctrl-J and Ctrl-K and the only print the
+  selected line.
 
 ## License
 
