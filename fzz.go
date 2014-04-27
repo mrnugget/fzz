@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -143,7 +144,7 @@ func main() {
 
 			go func() {
 				runner.runWithInput(input[:len(input)])
-				tty.cursorAfterPrompt(len(input))
+				tty.cursorAfterPrompt(utf8.RuneCount(input))
 			}()
 		}
 
