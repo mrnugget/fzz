@@ -20,6 +20,7 @@ const (
 	keyLineFeed               = 10
 	keyCarriageReturn         = 13
 	keyEndOfTransmissionBlock = 23
+	keyEscape		  = 27
 )
 
 var placeholder string
@@ -158,6 +159,9 @@ func main() {
 		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
 			tty.resetScreen()
 			runner.writeCmdStdout(os.Stdout)
+			return
+		case keyEscape:
+			tty.resetScreen()
 			return
 		case keyEndOfTransmissionBlock:
 			input = removeLastWord(input)
