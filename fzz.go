@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -144,7 +145,7 @@ func main() {
 
 			go func() {
 				runner.runWithInput(input[:len(input)])
-				tty.cursorAfterPrompt(len(input))
+				tty.cursorAfterPrompt(utf8.RuneCount(input))
 			}()
 		}
 
@@ -152,7 +153,12 @@ func main() {
 		switch b[0] {
 		case keyBackspace, keyDelete:
 			if len(input) > 1 {
-				input = input[:len(input)-1]
+				r, rsize := utf8.DecodeLastRune(input)
+				if r == utf8.RuneError {
+					input = input[:len(input)-1]
+				} else {
+					input = input[:len(input)-rsize]
+				}
 			} else if len(input) == 1 {
 				input = nil
 			}
