@@ -12,8 +12,13 @@ import (
 )
 
 const (
-	VERSION            = "0.0.1"
-	defaultPlaceholder = "{{}}"
+	VERSION              = "0.0.1"
+	defaultPlaceholder   = "{{}}"
+	keyBackspace         = 8
+	keyDelete            = 127
+	keyEndOfTransmission = 4
+	keyLineFeed          = 10
+	keyCarriageReturn    = 13
 )
 
 var placeholder string
@@ -131,15 +136,13 @@ func main() {
 
 		tty.Read(b)
 		switch b[0] {
-		case 8, 127:
-			// Backspace, delete
+		case keyBackspace, keyDelete:
 			if len(input) > 1 {
 				input = input[:len(input)-1]
 			} else if len(input) == 1 {
 				input = nil
 			}
-		case 4, 10, 13:
-			// Ctrl-D, line feed, carriage return
+		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
 			tty.resetScreen()
 			runner.writeCmdStdout(os.Stdout)
 			return
