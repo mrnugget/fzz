@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
@@ -134,7 +135,8 @@ func main() {
 	}
 
 	input := make([]byte, 0)
-	b := make([]byte, 1)
+	rs := bufio.NewScanner(tty)
+	rs.Split(bufio.ScanRunes)
 
 	for {
 		tty.resetScreen()
@@ -152,7 +154,12 @@ func main() {
 			}()
 		}
 
-		tty.Read(b)
+		if !rs.Scan() {
+			tty.resetScreen()
+			log.Fatal(rs.Err())
+		}
+		b := rs.Bytes()
+
 		switch b[0] {
 		case keyBackspace, keyDelete:
 			if len(input) > 1 {
