@@ -112,10 +112,6 @@ vimfzz() {
 
 * Man page
 * Get rid of the TODOs in the code
-* Add the ability to specify a first input value:
-  * `{{}}` doesn't specify any input and waits for the user
-  * `{{foobar}}` tells fzz to run the specified command with the initial input
-    of `foobar`
 * Change how fzz is printing its output to the TTY: instead of clearing the
   screen, jump to the first line, right after the input and rewrite the visible
   lines (padded so that all the columns are used and the previous output is not
