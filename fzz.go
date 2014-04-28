@@ -143,8 +143,11 @@ func main() {
 		if len(input) > 0 {
 			runner.killCurrent()
 
+			cmdInput := make([]byte, len(input))
+			copy(cmdInput, input)
+
 			go func() {
-				runner.runWithInput(input[:len(input)])
+				runner.runWithInput(cmdInput)
 				tty.cursorAfterPrompt(utf8.RuneCount(input))
 			}()
 		}
