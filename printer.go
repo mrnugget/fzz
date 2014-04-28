@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"sync"
 )
 
 type PrintResetter interface {
@@ -16,6 +17,7 @@ func NewPrinter(target io.Writer, maxCol, maxRow int) *Printer {
 		maxCol:  maxCol,
 		maxRow:  maxRow,
 		printed: 0,
+		mutex:   &sync.Mutex{},
 	}
 }
 
@@ -24,10 +26,13 @@ type Printer struct {
 	maxCol  int
 	maxRow  int
 	printed int
+	mutex   *sync.Mutex
 }
 
 func (p *Printer) Print(line string) (n int, err error) {
+	p.mutex.Lock()
 	if p.printed == p.maxRow {
+		p.mutex.Unlock()
 		return 0, nil
 	}
 
@@ -46,6 +51,7 @@ func (p *Printer) Print(line string) (n int, err error) {
 		p.printed++
 	}
 
+	p.mutex.Unlock()
 	return
 }
 
@@ -59,5 +65,7 @@ func (p *Printer) printLine(line string) (n int, err error) {
 }
 
 func (p *Printer) Reset() {
+	p.mutex.Lock()
 	p.printed = 0
+	p.mutex.Unlock()
 }
