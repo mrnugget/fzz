@@ -51,14 +51,11 @@ func (r *Runner) runWithInput(input []byte) {
 		r.stdoutbuf.WriteString(str)
 	}
 
-	err = cmd.Wait()
-	if err != nil {
-		for str := range errch {
-			r.printer.Print(str)
-		}
-		return
+	for str := range errch {
+		r.printer.Print(str)
 	}
 
+	cmd.Wait()
 	r.printer.Reset()
 }
 
