@@ -1,4 +1,4 @@
-# fzz [![Build Status](https://travis-ci.org/mrnugget/fzz.png)](https://travis-ci.org/mrnugget/fzz)
+# fzz [![Build Status](https://travis-ci.org/mrnugget/fzz.svg?branch=master)](https://travis-ci.org/mrnugget/fzz)
 
 **Do one thing, do it well — multiple times!**
 
