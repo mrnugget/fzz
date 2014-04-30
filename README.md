@@ -119,6 +119,15 @@ vimfzz() {
 * Maybe selection of a line with Ctrl-J and Ctrl-K and the only print the
   selected line.
 
+## Contributing
+
+Go ahead and open a issue or send a pull request. Fork it, branch it, send it.
+
+## Contributors
+
+Thanks to [ebfe](http://github.com/ebfe) for fixing a ton of bugs, adding
+features and offering suggestions!
+
 ## License
 
 MIT, see [LICENSE](LICENSE)
