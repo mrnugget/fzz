@@ -146,8 +146,11 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 					input = nil
 				}
 			case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
-				runner.killCurrent()
-				tty.resetScreen()
+				for line := range outch {
+					stdoutbuf.WriteString(line)
+				}
+				runner.current.Wait()
+				io.Copy(os.Stdout, &stdoutbuf)
 				return
 			case keyEscape:
 				tty.resetScreen()
