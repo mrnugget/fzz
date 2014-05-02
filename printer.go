@@ -41,7 +41,7 @@ func (p *Printer) Print(line string) (n int, err error) {
 	}
 
 	// If we're on the last line, cut the newline character off
-	if p.printed == p.maxRow-1 && line[len(line)-1] == '\n' {
+	if p.printed == p.maxRow-1 && len(line) > 0 && line[len(line)-1] == '\n' {
 		n, err = p.printLine(line[:len(line)-1])
 	} else {
 		n, err = p.printLine(line)

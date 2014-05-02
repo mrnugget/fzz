@@ -22,7 +22,7 @@ const (
 	keyLineFeed               = 10
 	keyCarriageReturn         = 13
 	keyEndOfTransmissionBlock = 23
-	keyEscape		  = 27
+	keyEscape                 = 27
 )
 
 var placeholder string
@@ -78,6 +78,117 @@ func removeLastWord(s []byte) []byte {
 	return []byte{}
 }
 
+func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
+	runner := &Runner{
+		template:    flag.Args(),
+		placeholder: placeholder,
+	}
+
+	input := make([]byte, 0)
+	ttych := make(chan []byte)
+
+	go func() {
+		rs := bufio.NewScanner(tty)
+		rs.Split(bufio.ScanRunes)
+
+		for rs.Scan() {
+			b := rs.Bytes()
+			ttych <- b
+		}
+
+		tty.resetScreen()
+		log.Fatal(rs.Err())
+	}()
+
+	f, err := os.Create("trace.log")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tty.resetScreen()
+	tty.printPrompt(input[:len(input)])
+
+	var outch <-chan string
+	var errch <-chan string
+	var stdoutbuf bytes.Buffer
+
+	for {
+		f.WriteString("select\n")
+		select {
+		case line, ok := <-outch:
+			fmt.Fprintf(f, "outch: %q %t\n", line, ok)
+			if !ok {
+				outch = nil
+				tty.cursorAfterPrompt(utf8.RuneCount(input))
+			} else {
+				stdoutbuf.WriteString(line)
+				printer.Print(line)
+			}
+		case line, ok := <-errch:
+			fmt.Fprintf(f, "errch: %q %t\n", line, ok)
+			if !ok {
+				errch = nil
+			} else {
+				printer.Print(line)
+			}
+		case b := <-ttych:
+			fmt.Fprintf(f, "ttych: %x\n", b)
+			switch b[0] {
+			case keyBackspace, keyDelete:
+				if len(input) > 1 {
+					r, rsize := utf8.DecodeLastRune(input)
+					if r == utf8.RuneError {
+						input = input[:len(input)-1]
+					} else {
+						input = input[:len(input)-rsize]
+					}
+				} else if len(input) == 1 {
+					input = nil
+				}
+			case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
+				runner.killCurrent()
+				tty.resetScreen()
+				return
+			case keyEscape:
+				tty.resetScreen()
+				return
+			case keyEndOfTransmissionBlock:
+				input = removeLastWord(input)
+			default:
+				// TODO: Default is wrong here. Only append printable characters to
+				// input
+				input = append(input, b...)
+			}
+
+			fmt.Fprintf(f, "ttych: kill")
+			if runner.current != nil {
+				runner.current.Process.Kill()
+				outch = nil
+				errch = nil
+				runner.current.Wait()
+			}
+			fmt.Fprintf(f, "ttych: reset")
+
+			tty.resetScreen()
+			tty.printPrompt(input)
+			tty.cursorAfterPrompt(utf8.RuneCount(input))
+			printer.Reset()
+			if len(input) > 0 {
+				fmt.Fprintf(f, "ttych: rerun")
+				var err error
+				outch, errch, err = runner.runWithInput(input)
+				if err != nil {
+					printer.Print("error: " + err.Error())
+				}
+				stdoutbuf.Reset()
+			} else {
+				outch, errch = nil, nil
+				stdoutbuf.Reset()
+			}
+		}
+	}
+}
+
 func main() {
 	flVersion := flag.Bool("v", false, "Print fzz version and quit")
 	flag.Usage = printUsage
@@ -122,69 +233,11 @@ func main() {
 	}()
 	tty.setSttyState("cbreak", "-echo")
 
-	printer := NewPrinter(tty, tty.cols, tty.rows-1) // prompt is one row
-	runner := &Runner{
-		printer:     printer,
-		template:    flag.Args(),
-		placeholder: placeholder,
-	}
-
+	stdinbuf := bytes.Buffer{}
 	if isPipe(os.Stdin) {
-		runner.stdinbuf = new(bytes.Buffer)
-		io.Copy(runner.stdinbuf, os.Stdin)
+		io.Copy(&stdinbuf, os.Stdin)
 	}
 
-	input := make([]byte, 0)
-	rs := bufio.NewScanner(tty)
-	rs.Split(bufio.ScanRunes)
-
-	for {
-		tty.resetScreen()
-		tty.printPrompt(input[:len(input)])
-
-		if len(input) > 0 {
-			runner.killCurrent()
-
-			cmdInput := make([]byte, len(input))
-			copy(cmdInput, input)
-
-			go func() {
-				runner.runWithInput(cmdInput)
-				tty.cursorAfterPrompt(utf8.RuneCount(input))
-			}()
-		}
-
-		if !rs.Scan() {
-			tty.resetScreen()
-			log.Fatal(rs.Err())
-		}
-		b := rs.Bytes()
-
-		switch b[0] {
-		case keyBackspace, keyDelete:
-			if len(input) > 1 {
-				r, rsize := utf8.DecodeLastRune(input)
-				if r == utf8.RuneError {
-					input = input[:len(input)-1]
-				} else {
-					input = input[:len(input)-rsize]
-				}
-			} else if len(input) == 1 {
-				input = nil
-			}
-		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
-			tty.resetScreen()
-			runner.writeCmdStdout(os.Stdout)
-			return
-		case keyEscape:
-			tty.resetScreen()
-			return
-		case keyEndOfTransmissionBlock:
-			input = removeLastWord(input)
-		default:
-			// TODO: Default is wrong here. Only append printable characters to
-			// input
-			input = append(input, b...)
-		}
-	}
+	printer := NewPrinter(tty, tty.cols, tty.rows-1) // prompt is one row
+	mainLoop(tty, printer, &stdinbuf)
 }

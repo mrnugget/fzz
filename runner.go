@@ -4,59 +4,47 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"log"
 	"os/exec"
 	"strings"
 )
 
 type Runner struct {
-	printer     PrintResetter
 	current     *exec.Cmd
 	template    []string
 	placeholder string
-	stdoutbuf   *bytes.Buffer
-	stdinbuf    *bytes.Buffer
+	stdinbuf    bytes.Buffer
+	stopstream  chan struct{}
 }
 
-func (r *Runner) runWithInput(input []byte) {
+func (r *Runner) runWithInput(input []byte) (<-chan string, <-chan string, error) {
 	cmd := r.cmdWithInput(string(input))
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil, err
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		log.Fatal(err)
+		stdout.Close()
+		return nil, nil, err
 	}
 
-	outch := r.streamOutput(stdout)
-	errch := r.streamOutput(stderr)
+	r.stopstream = make(chan struct{})
+	outch := r.streamOutput(stdout, r.stopstream)
+	errch := r.streamOutput(stderr, r.stopstream)
 
-	if r.stdinbuf != nil {
+	if r.stdinbuf.Len() != 0 {
 		cmd.Stdin = bytes.NewBuffer(r.stdinbuf.Bytes())
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil, err
 	}
-
-	r.stdoutbuf = new(bytes.Buffer)
 	r.current = cmd
 
-	for str := range outch {
-		r.printer.Print(str)
-		r.stdoutbuf.WriteString(str)
-	}
-
-	for str := range errch {
-		r.printer.Print(str)
-	}
-
-	cmd.Wait()
-	r.printer.Reset()
+	return outch, errch, nil
 }
 
 func (r *Runner) cmdWithInput(input string) *exec.Cmd {
@@ -68,40 +56,48 @@ func (r *Runner) cmdWithInput(input string) *exec.Cmd {
 	return exec.Command(argv[0], argv[1:]...)
 }
 
-func (r *Runner) streamOutput(stdout io.ReadCloser) <-chan string {
+func (r *Runner) streamOutput(stdout io.ReadCloser, stop <-chan struct{}) <-chan string {
 	ch := make(chan string)
+
 	cmdreader := bufio.NewReader(stdout)
 
 	go func() {
 		for {
-			line, err := cmdreader.ReadBytes('\n')
-			if s := string(line); s != "" {
-				ch <- s
-			}
-			if err != nil || err == io.EOF {
-				break
+			select {
+			case <-stop:
+				close(ch)
+				return
+			default:
+				line, err := cmdreader.ReadBytes('\n')
+				if s := string(line); s != "" {
+					ch <- s
+				}
+				if err != nil || err == io.EOF {
+					close(ch)
+					return
+				}
 			}
 		}
-		close(ch)
 	}()
 
 	return ch
 }
 
-func (r *Runner) writeCmdStdout(out io.Writer) (n int64, err error) {
-	if r.stdoutbuf != nil {
-		n, err = io.Copy(out, r.stdoutbuf)
-	}
-	return
-}
-
 func (r *Runner) killCurrent() {
 	if r.current != nil {
+		r.stopstream <- struct{}{}
+		r.stopstream <- struct{}{}
+
 		r.current.Process.Kill()
 		r.current.Wait()
 
 		r.current = nil
 	}
+}
 
-	r.printer.Reset()
+func (r *Runner) wait() {
+	if r.current != nil {
+		r.current.Wait()
+		r.current = nil
+	}
 }
