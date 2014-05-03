@@ -79,10 +79,13 @@ func removeLastWord(s []byte) []byte {
 }
 
 func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
-	runner := &Runner{
-		template:    flag.Args(),
-		placeholder: placeholder,
+	f, err := os.Create("trace.log")
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	var stdoutbuf bytes.Buffer
+	var currentRunner *Runner
 
 	input := make([]byte, 0)
 	ttych := make(chan []byte)
@@ -100,39 +103,13 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 		log.Fatal(rs.Err())
 	}()
 
-	f, err := os.Create("trace.log")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	tty.resetScreen()
 	tty.printPrompt(input[:len(input)])
 
-	var outch <-chan string
-	var errch <-chan string
-	var stdoutbuf bytes.Buffer
 
 	for {
 		f.WriteString("select\n")
 		select {
-		case line, ok := <-outch:
-			fmt.Fprintf(f, "outch: %q %t\n", line, ok)
-			if !ok {
-				outch = nil
-				fmt.Fprintf(f, "outch closed\n", line, ok)
-				tty.cursorAfterPrompt(utf8.RuneCount(input))
-			} else {
-				stdoutbuf.WriteString(line)
-				printer.Print(line)
-			}
-		case line, ok := <-errch:
-			fmt.Fprintf(f, "errch: %q %t\n", line, ok)
-			if !ok {
-				errch = nil
-				fmt.Fprintf(f, "errch closed\n", line, ok)
-			} else {
-				printer.Print(line)
-			}
 		case b := <-ttych:
 			fmt.Fprintf(f, "ttych: %x\n", b)
 			switch b[0] {
@@ -148,16 +125,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 					input = nil
 				}
 			case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
-				if errch != nil && outch != nil {
-					for line := range outch {
-						printer.Print(line)
-						stdoutbuf.WriteString(line)
-					}
-					for line := range errch {
-						stdoutbuf.WriteString(line)
-					}
-				}
-				runner.current.Wait()
+				currentRunner.Wait()
 				tty.resetScreen()
 				io.Copy(os.Stdout, &stdoutbuf)
 				return
@@ -172,36 +140,46 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 				input = append(input, b...)
 			}
 
-			fmt.Fprintf(f, "ttych: got input\n")
-			if runner.current != nil {
-				fmt.Fprintf(f, "ttych: close stream\n")
-				close(runner.stopstream)
 
-				runner.current.Process.Kill()
-				fmt.Fprintf(f, "ttych: kill\n")
-				runner.current.Wait()
-				fmt.Fprintf(f, "ttych: wait\n")
+			fmt.Fprintf(f, "after select. currentRunner: %p\n", currentRunner)
 
-				runner.current = nil
+			if currentRunner != nil {
+				go func(runner *Runner) {
+					fmt.Fprintf(f, "calling KillWait(). runner: %p\n", runner)
+					runner.KillWait()
+					fmt.Fprintf(f, "killwait finished\n")
+				}(currentRunner)
 			}
-			fmt.Fprintf(f, "ttych: after reset\n")
 
 			tty.resetScreen()
 			tty.printPrompt(input)
-			tty.cursorAfterPrompt(utf8.RuneCount(input))
-			fmt.Fprintf(f, "ttych: cursor after prompt\n")
+
 			printer.Reset()
+
 			if len(input) > 0 {
-				fmt.Fprintf(f, "ttych: rerun")
-				var err error
-				outch, errch, err = runner.runWithInput(input)
+				currentRunner = &Runner{template: flag.Args(), placeholder: placeholder}
+				fmt.Fprintf(f, "starting new runner. runner: %p\n", currentRunner)
+				outch, errch, err := currentRunner.runWithInput(input)
 				if err != nil {
-					printer.Print("error: " + err.Error())
+					log.Fatal(err)
 				}
 				stdoutbuf.Reset()
-			} else {
-				outch, errch = nil, nil
-				stdoutbuf.Reset()
+				go func() {
+					for line := range outch {
+						printer.Print(line)
+						stdoutbuf.WriteString(line)
+					}
+					fmt.Fprintf(f, "outch finished. cursorAfterPrompt now. runecount: %d\n", utf8.RuneCount(input))
+					tty.cursorAfterPrompt(utf8.RuneCount(input))
+				}()
+
+				go func() {
+					for line := range errch {
+						stdoutbuf.WriteString(line)
+					}
+					fmt.Fprintf(f, "errch finished. cursorAfterPrompt now. runecount: %d\n", utf8.RuneCount(input))
+					// tty.cursorAfterPrompt(utf8.RuneCount(input))
+				}()
 			}
 		}
 	}
