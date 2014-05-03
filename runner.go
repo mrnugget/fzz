@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"os/exec"
 	"strings"
@@ -58,7 +59,6 @@ func (r *Runner) cmdWithInput(input string) *exec.Cmd {
 
 func (r *Runner) streamOutput(stdout io.ReadCloser, stop <-chan struct{}) <-chan string {
 	ch := make(chan string)
-
 	cmdreader := bufio.NewReader(stdout)
 
 	go func() {
@@ -85,8 +85,8 @@ func (r *Runner) streamOutput(stdout io.ReadCloser, stop <-chan struct{}) <-chan
 
 func (r *Runner) killCurrent() {
 	if r.current != nil {
-		r.stopstream <- struct{}{}
-		r.stopstream <- struct{}{}
+		fmt.Printf("lol1")
+		close(r.stopstream)
 
 		r.current.Process.Kill()
 		r.current.Wait()

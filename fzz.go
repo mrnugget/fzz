@@ -119,6 +119,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			fmt.Fprintf(f, "outch: %q %t\n", line, ok)
 			if !ok {
 				outch = nil
+				fmt.Fprintf(f, "outch closed\n", line, ok)
 				tty.cursorAfterPrompt(utf8.RuneCount(input))
 			} else {
 				stdoutbuf.WriteString(line)
@@ -128,6 +129,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			fmt.Fprintf(f, "errch: %q %t\n", line, ok)
 			if !ok {
 				errch = nil
+				fmt.Fprintf(f, "errch closed\n", line, ok)
 			} else {
 				printer.Print(line)
 			}
@@ -146,10 +148,17 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 					input = nil
 				}
 			case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
-				for line := range outch {
-					stdoutbuf.WriteString(line)
+				if errch != nil && outch != nil {
+					for line := range outch {
+						printer.Print(line)
+						stdoutbuf.WriteString(line)
+					}
+					for line := range errch {
+						stdoutbuf.WriteString(line)
+					}
 				}
 				runner.current.Wait()
+				tty.resetScreen()
 				io.Copy(os.Stdout, &stdoutbuf)
 				return
 			case keyEscape:
@@ -163,18 +172,24 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 				input = append(input, b...)
 			}
 
-			fmt.Fprintf(f, "ttych: kill")
+			fmt.Fprintf(f, "ttych: got input\n")
 			if runner.current != nil {
+				fmt.Fprintf(f, "ttych: close stream\n")
+				close(runner.stopstream)
+
 				runner.current.Process.Kill()
-				outch = nil
-				errch = nil
+				fmt.Fprintf(f, "ttych: kill\n")
 				runner.current.Wait()
+				fmt.Fprintf(f, "ttych: wait\n")
+
+				runner.current = nil
 			}
-			fmt.Fprintf(f, "ttych: reset")
+			fmt.Fprintf(f, "ttych: after reset\n")
 
 			tty.resetScreen()
 			tty.printPrompt(input)
 			tty.cursorAfterPrompt(utf8.RuneCount(input))
+			fmt.Fprintf(f, "ttych: cursor after prompt\n")
 			printer.Reset()
 			if len(input) > 0 {
 				fmt.Fprintf(f, "ttych: rerun")
