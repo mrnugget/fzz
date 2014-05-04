@@ -102,81 +102,80 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 
 
 	for {
-		select {
-		case b := <-ttych:
-			switch b[0] {
-			case keyBackspace, keyDelete:
-				if len(input) > 1 {
-					r, rsize := utf8.DecodeLastRune(input)
-					if r == utf8.RuneError {
-						input = input[:len(input)-1]
-					} else {
-						input = input[:len(input)-rsize]
-					}
-				} else if len(input) == 1 {
-					input = nil
+		b := <-ttych
+
+		switch b[0] {
+		case keyBackspace, keyDelete:
+			if len(input) > 1 {
+				r, rsize := utf8.DecodeLastRune(input)
+				if r == utf8.RuneError {
+					input = input[:len(input)-1]
+				} else {
+					input = input[:len(input)-rsize]
 				}
-			case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
-				currentRunner.Wait()
-				tty.resetScreen()
-				io.Copy(os.Stdout, stdoutbuf)
-				return
-			case keyEscape:
-				tty.resetScreen()
-				return
-			case keyEndOfTransmissionBlock:
-				input = removeLastWord(input)
-			default:
-				// TODO: Default is wrong here. Only append printable characters to
-				// input
-				input = append(input, b...)
+			} else if len(input) == 1 {
+				input = nil
 			}
-
-
-			if currentRunner != nil {
-				go func(runner *Runner) {
-					runner.KillWait()
-				}(currentRunner)
-			}
-
+		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
+			currentRunner.Wait()
 			tty.resetScreen()
-			tty.printPrompt(input)
+			io.Copy(os.Stdout, stdoutbuf)
+			return
+		case keyEscape:
+			tty.resetScreen()
+			return
+		case keyEndOfTransmissionBlock:
+			input = removeLastWord(input)
+		default:
+			// TODO: Default is wrong here. Only append printable characters to
+			// input
+			input = append(input, b...)
+		}
 
-			printer.Reset()
 
-			if len(input) > 0 {
-				currentRunner = &Runner{
-					template: flag.Args(),
-					placeholder: placeholder,
-					stdinbuf: stdinbuf,
-				}
+		if currentRunner != nil {
+			go func(runner *Runner) {
+				runner.KillWait()
+			}(currentRunner)
+		}
 
-				outch, errch, err := currentRunner.runWithInput(input)
-				if err != nil {
-					log.Fatal(err)
-				}
+		tty.resetScreen()
+		tty.printPrompt(input)
 
-				stdoutbuf.Reset()
+		printer.Reset()
 
-				go func() {
-					defer tty.cursorAfterPrompt(utf8.RuneCount(input))
-					for {
-						select {
-						case stdoutline, ok := <-outch:
-							if !ok {
-								return
-							}
-							printer.Print(stdoutline)
-							stdoutbuf.WriteString(stdoutline)
-						case stderrline, ok := <-errch:
-							if !ok {
-								return
-							}
-							printer.Print(stderrline)
-						}
-					}
-				}()
+		if len(input) > 0 {
+			currentRunner = &Runner{
+				template: flag.Args(),
+				placeholder: placeholder,
+				stdinbuf: stdinbuf,
 			}
+
+			outch, errch, err := currentRunner.runWithInput(input)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			stdoutbuf.Reset()
+
+			go func() {
+				defer tty.cursorAfterPrompt(utf8.RuneCount(input))
+				for {
+					select {
+					case stdoutline, ok := <-outch:
+						if !ok {
+							return
+						}
+						printer.Print(stdoutline)
+						stdoutbuf.WriteString(stdoutline)
+					case stderrline, ok := <-errch:
+						if !ok {
+							return
+						}
+						printer.Print(stderrline)
+					}
+				}
+			}()
 		}
 	}
 }
