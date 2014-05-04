@@ -79,11 +79,11 @@ func removeLastWord(s []byte) []byte {
 }
 
 func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
-	var stdoutbuf bytes.Buffer
 	var currentRunner *Runner
 
 	input := make([]byte, 0)
 	ttych := make(chan []byte)
+	stdoutbuf := &bytes.Buffer{}
 
 	go func() {
 		rs := bufio.NewScanner(tty)
@@ -119,7 +119,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
 				currentRunner.Wait()
 				tty.resetScreen()
-				io.Copy(os.Stdout, &stdoutbuf)
+				io.Copy(os.Stdout, stdoutbuf)
 				return
 			case keyEscape:
 				tty.resetScreen()
