@@ -99,7 +99,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			ttych <- b
 		}
 
-		tty.resetScreen()
 		log.Fatal(rs.Err())
 	}()
 
@@ -163,7 +162,9 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 				if err != nil {
 					log.Fatal(err)
 				}
+
 				stdoutbuf.Reset()
+
 				go func() {
 					for line := range outch {
 						printer.Print(line)
@@ -175,6 +176,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 
 				go func() {
 					for line := range errch {
+						printer.Print(line)
 						stdoutbuf.WriteString(line)
 					}
 					fmt.Fprintf(f, "errch finished. cursorAfterPrompt now. runecount: %d\n", utf8.RuneCount(input))
