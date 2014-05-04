@@ -158,8 +158,8 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 
 			stdoutbuf.Reset()
 
-			go func() {
-				defer tty.cursorAfterPrompt(utf8.RuneCount(input))
+			go func(inputlen int) {
+				defer tty.cursorAfterPrompt(inputlen)
 				for {
 					select {
 					case stdoutline, ok := <-outch:
@@ -175,7 +175,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 						printer.Print(stderrline)
 					}
 				}
-			}()
+			}(utf8.RuneCount(input))
 		}
 	}
 }
