@@ -13,7 +13,7 @@ type Runner struct {
 	c           *exec.Cmd
 	template    []string
 	placeholder string
-	stdinbuf    bytes.Buffer
+	stdinbuf    *bytes.Buffer
 	wg          *sync.WaitGroup
 }
 

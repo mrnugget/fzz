@@ -156,7 +156,12 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			printer.Reset()
 
 			if len(input) > 0 {
-				currentRunner = &Runner{template: flag.Args(), placeholder: placeholder}
+				currentRunner = &Runner{
+					template: flag.Args(),
+					placeholder: placeholder,
+					stdinbuf: stdinbuf,
+				}
+
 				fmt.Fprintf(f, "starting new runner. runner: %p\n", currentRunner)
 				outch, errch, err := currentRunner.runWithInput(input)
 				if err != nil {
