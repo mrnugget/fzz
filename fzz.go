@@ -79,11 +79,6 @@ func removeLastWord(s []byte) []byte {
 }
 
 func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
-	f, err := os.Create("trace.log")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	var stdoutbuf bytes.Buffer
 	var currentRunner *Runner
 
@@ -107,10 +102,8 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 
 
 	for {
-		f.WriteString("select\n")
 		select {
 		case b := <-ttych:
-			fmt.Fprintf(f, "ttych: %x\n", b)
 			switch b[0] {
 			case keyBackspace, keyDelete:
 				if len(input) > 1 {
@@ -140,13 +133,9 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			}
 
 
-			fmt.Fprintf(f, "after select. currentRunner: %p\n", currentRunner)
-
 			if currentRunner != nil {
 				go func(runner *Runner) {
-					fmt.Fprintf(f, "calling KillWait(). runner: %p\n", runner)
 					runner.KillWait()
-					fmt.Fprintf(f, "killwait finished\n")
 				}(currentRunner)
 			}
 
@@ -162,7 +151,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 					stdinbuf: stdinbuf,
 				}
 
-				fmt.Fprintf(f, "starting new runner. runner: %p\n", currentRunner)
 				outch, errch, err := currentRunner.runWithInput(input)
 				if err != nil {
 					log.Fatal(err)
@@ -175,7 +163,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 						printer.Print(line)
 						stdoutbuf.WriteString(line)
 					}
-					fmt.Fprintf(f, "outch finished. cursorAfterPrompt now. runecount: %d\n", utf8.RuneCount(input))
 					tty.cursorAfterPrompt(utf8.RuneCount(input))
 				}()
 
@@ -184,7 +171,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 						printer.Print(line)
 						stdoutbuf.WriteString(line)
 					}
-					fmt.Fprintf(f, "errch finished. cursorAfterPrompt now. runecount: %d\n", utf8.RuneCount(input))
 					// tty.cursorAfterPrompt(utf8.RuneCount(input))
 				}()
 			}
