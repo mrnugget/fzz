@@ -159,18 +159,22 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 				stdoutbuf.Reset()
 
 				go func() {
-					for line := range outch {
-						printer.Print(line)
-						stdoutbuf.WriteString(line)
+					defer tty.cursorAfterPrompt(utf8.RuneCount(input))
+					for {
+						select {
+						case stdoutline, ok := <-outch:
+							if !ok {
+								return
+							}
+							printer.Print(stdoutline)
+							stdoutbuf.WriteString(stdoutline)
+						case stderrline, ok := <-errch:
+							if !ok {
+								return
+							}
+							printer.Print(stderrline)
+						}
 					}
-					tty.cursorAfterPrompt(utf8.RuneCount(input))
-				}()
-
-				go func() {
-					for line := range errch {
-						printer.Print(line)
-					}
-					// tty.cursorAfterPrompt(utf8.RuneCount(input))
 				}()
 			}
 		}
