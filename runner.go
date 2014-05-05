@@ -58,12 +58,14 @@ func (r *Runner) Run() (<-chan string, error) {
 			case stdoutline, ok := <-outch:
 				if !ok {
 					outch = nil
+					break
 				}
 				r.stdoutbuf.WriteString(stdoutline)
 				ch <- stdoutline
 			case stderrline, ok := <-errch:
 				if !ok {
 					errch = nil
+					break
 				}
 				ch <- stderrline
 			}

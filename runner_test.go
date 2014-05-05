@@ -12,7 +12,29 @@ func (t *TestPipe) Close() (err error) {
 	return
 }
 
-var testInput []byte = []byte{'f', 'o', 'o'}
+func TestRun(t *testing.T) {
+	stdinbuf := &bytes.Buffer{}
+	template := []string{"echo", "{{}}"}
+	runner := NewRunner(template, "{{}}", "foobar", stdinbuf)
+
+	ch, err := runner.Run()
+	if err != nil {
+		t.Errorf("runner.Run() returned an error: %s", err)
+	}
+
+	output := make([]string, 0)
+	for outputline := range ch {
+		output = append(output, outputline)
+	}
+
+	if len(output) != 1 {
+		t.Errorf("output length wrong. expected: %d, actual: %d", 1, len(output))
+	}
+
+	if output[0] != "foobar\n" {
+		t.Errorf("output wrong. expected: %q, actual: %q", "foobar", output[0])
+	}
+}
 
 func TestStreamOutput(t *testing.T) {
 	pipe := &TestPipe{bytes.NewBufferString("foo\nbar\n")}
