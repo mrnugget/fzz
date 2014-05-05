@@ -145,6 +145,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 		tty.printPrompt(input)
 
 		printer.Reset()
+		stdoutbuf.Reset()
 
 		if len(input) > 0 {
 			currentRunner = NewRunner(flag.Args(), placeholder, string(input), stdinbuf)
@@ -152,8 +153,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			stdoutbuf.Reset()
 
 			// TODO:
 			// 1.) give each runner its own stdoutbuf
