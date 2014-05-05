@@ -99,7 +99,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 	tty.resetScreen()
 	tty.printPrompt(input[:len(input)])
 
-
 	for {
 		b := <-ttych
 
@@ -134,7 +133,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 			// input
 			input = append(input, b...)
 		}
-
 
 		if currentRunner != nil {
 			go func(runner *Runner) {
