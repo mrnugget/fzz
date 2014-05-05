@@ -145,18 +145,24 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 		printer.Reset()
 
 		if len(input) > 0 {
-			currentRunner = &Runner{
-				template: flag.Args(),
-				placeholder: placeholder,
-				stdinbuf: stdinbuf,
-			}
-
-			outch, errch, err := currentRunner.runWithInput(input)
+			currentRunner = NewRunner(flag.Args(), placeholder, string(input), stdinbuf)
+			outch, errch, err := currentRunner.Run()
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			stdoutbuf.Reset()
+
+			// TODO:
+			// 1.) give each runner its own stdoutbuf
+			// 2.) only return one channel on Run()
+			// 3.) this one channel contains stderr and stdout
+			// 4.) Put the loop below into runner.Run()
+			//	   - each stdout line gets written to runner.stdoutbuf
+			//	   - each stdout line gets sent through the one channel Run() returns
+			//	   - each stderr line gets sent through the one channel Run() returns
+			// 5.) Instead of the loop here, create a new goroutine that uses `range` over the one returned channel to print it
+			//     after printing it sets the cursor after the prompt
 
 			go func(inputlen int) {
 				defer tty.cursorAfterPrompt(inputlen)

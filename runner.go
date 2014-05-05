@@ -9,56 +9,57 @@ import (
 	"sync"
 )
 
-type Runner struct {
-	c           *exec.Cmd
-	template    []string
-	placeholder string
-	stdinbuf    *bytes.Buffer
-	wg          *sync.WaitGroup
+func cmdWithInput(template []string, placeholder, input string) *exec.Cmd {
+	argv := make([]string, len(template))
+	for i := range argv {
+		argv[i] = strings.Replace(template[i], placeholder, input, -1)
+	}
+	return exec.Command(argv[0], argv[1:]...)
 }
 
-func (r *Runner) runWithInput(input []byte) (<-chan string, <-chan string, error) {
-	cmd := r.cmdWithInput(string(input))
+type Runner struct {
+	cmd      *exec.Cmd
+	stdinbuf *bytes.Buffer
+	wg       *sync.WaitGroup
+}
 
-	stdout, err := cmd.StdoutPipe()
+func NewRunner(template []string, placeholder, input string, stdin *bytes.Buffer) *Runner {
+	cmd := cmdWithInput(template, placeholder, input)
+
+	return &Runner{
+		cmd:      cmd,
+		stdinbuf: stdin,
+		wg:       &sync.WaitGroup{},
+	}
+}
+
+func (r *Runner) Run() (<-chan string, <-chan string, error) {
+	stdout, err := r.cmd.StdoutPipe()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	stderr, err := cmd.StderrPipe()
+	stderr, err := r.cmd.StderrPipe()
 	if err != nil {
 		stdout.Close()
 		return nil, nil, err
 	}
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	outch := r.streamOutput(stdout, wg)
-	wg.Add(1)
-	errch := r.streamOutput(stderr, wg)
+	r.wg.Add(1)
+	outch := r.streamOutput(stdout, r.wg)
+	r.wg.Add(1)
+	errch := r.streamOutput(stderr, r.wg)
 
 	if r.stdinbuf.Len() != 0 {
-		cmd.Stdin = bytes.NewBuffer(r.stdinbuf.Bytes())
+		r.cmd.Stdin = bytes.NewBuffer(r.stdinbuf.Bytes())
 	}
 
-	err = cmd.Start()
+	err = r.cmd.Start()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	r.c = cmd
-	r.wg = wg
-
 	return outch, errch, nil
-}
-
-func (r *Runner) cmdWithInput(input string) *exec.Cmd {
-	argv := make([]string, len(r.template))
-	for i := range argv {
-		argv[i] = strings.Replace(r.template[i], r.placeholder, input, -1)
-	}
-
-	return exec.Command(argv[0], argv[1:]...)
 }
 
 func (r *Runner) streamOutput(rc io.ReadCloser, wg *sync.WaitGroup) <-chan string {
@@ -84,15 +85,11 @@ func (r *Runner) streamOutput(rc io.ReadCloser, wg *sync.WaitGroup) <-chan strin
 }
 
 func (r *Runner) KillWait() {
-	if r.c != nil {
-		r.c.Process.Kill()
-		r.Wait()
-	}
+	r.cmd.Process.Kill()
+	r.Wait()
 }
 
 func (r *Runner) Wait() {
-	if r.c != nil {
-		r.wg.Wait()
-		r.c.Wait()
-	}
+	r.wg.Wait()
+	r.cmd.Wait()
 }
