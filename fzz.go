@@ -143,7 +143,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 		}
 
 		tty.resetScreen()
-		tty.printPrompt(input)
+		tty.printPrompt(input[:len(input)])
 
 		printer.Reset()
 
