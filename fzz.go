@@ -171,15 +171,18 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 					select {
 					case stdoutline, ok := <-outch:
 						if !ok {
-							return
+							outch = nil
 						}
 						printer.Print(stdoutline)
 						stdoutbuf.WriteString(stdoutline)
 					case stderrline, ok := <-errch:
 						if !ok {
-							return
+							errch = nil
 						}
 						printer.Print(stderrline)
+					}
+					if outch == nil && errch == nil {
+						return
 					}
 				}
 			}(utf8.RuneCount(input))
