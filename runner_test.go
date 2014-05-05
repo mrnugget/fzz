@@ -26,6 +26,7 @@ func TestRun(t *testing.T) {
 	for outputline := range ch {
 		output = append(output, outputline)
 	}
+	runner.Wait()
 
 	if len(output) != 1 {
 		t.Errorf("output length wrong. expected: %d, actual: %d", 1, len(output))
