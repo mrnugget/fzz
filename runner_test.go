@@ -33,10 +33,36 @@ func TestRun(t *testing.T) {
 	}
 
 	if output[0] != "foobar\n" {
-		t.Errorf("output wrong. expected: %q, actual: %q", "foobar", output[0])
+		t.Errorf("output wrong. expected: %q, actual: %q", "foobar\n", output[0])
 	}
 }
 
+func TestStdinbuffer(t *testing.T) {
+	stdinbuf := &bytes.Buffer{}
+	stdinbuf.WriteString("foo\nbar\n")
+
+	template := []string{"grep", "{{}}"}
+	runner := NewRunner(template, "{{}}", "foo", stdinbuf)
+
+	ch, err := runner.Run()
+	if err != nil {
+		t.Errorf("runner.Run() returned an error: %s", err)
+	}
+
+	output := make([]string, 0)
+	for outputline := range ch {
+		output = append(output, outputline)
+	}
+	runner.Wait()
+
+	if len(output) != 1 {
+		t.Errorf("output length wrong. expected: %d, actual: %d", 1, len(output))
+	}
+
+	if output[0] != "foo\n" {
+		t.Errorf("output wrong. expected: %q, actual: %q", "foo\n", output[0])
+	}
+}
 func TestStreamOutput(t *testing.T) {
 	pipe := &TestPipe{bytes.NewBufferString("foo\nbar\n")}
 	wg := &sync.WaitGroup{}
