@@ -78,6 +78,20 @@ func removeLastWord(s []byte) []byte {
 	return []byte{}
 }
 
+func removeLastCharacter(s []byte) []byte {
+	if len(s) > 1 {
+		r, rsize := utf8.DecodeLastRune(s)
+		if r == utf8.RuneError {
+			return s[:len(s)-1]
+		} else {
+			return s[:len(s)-rsize]
+		}
+	} else if len(s) == 1 {
+		return nil
+	}
+	return s
+}
+
 func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 	var currentRunner *Runner
 
@@ -104,16 +118,7 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 
 		switch b[0] {
 		case keyBackspace, keyDelete:
-			if len(input) > 1 {
-				r, rsize := utf8.DecodeLastRune(input)
-				if r == utf8.RuneError {
-					input = input[:len(input)-1]
-				} else {
-					input = input[:len(input)-rsize]
-				}
-			} else if len(input) == 1 {
-				input = nil
-			}
+			input = removeLastCharacter(input)
 		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
 			if currentRunner != nil {
 				currentRunner.Wait()
