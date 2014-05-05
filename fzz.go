@@ -83,7 +83,6 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 
 	input := make([]byte, 0)
 	ttych := make(chan []byte)
-	stdoutbuf := &bytes.Buffer{}
 
 	go func() {
 		rs := bufio.NewScanner(tty)
@@ -119,9 +118,11 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
 			if currentRunner != nil {
 				currentRunner.Wait()
+				tty.resetScreen()
+				io.Copy(os.Stdout, currentRunner.stdoutbuf)
+			} else {
+				tty.resetScreen()
 			}
-			tty.resetScreen()
-			io.Copy(os.Stdout, stdoutbuf)
 			return
 		case keyEscape:
 			tty.resetScreen()
@@ -145,46 +146,19 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 		tty.printPrompt(input)
 
 		printer.Reset()
-		stdoutbuf.Reset()
 
 		if len(input) > 0 {
 			currentRunner = NewRunner(flag.Args(), placeholder, string(input), stdinbuf)
-			outch, errch, err := currentRunner.Run()
+			ch, err := currentRunner.Run()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			// TODO:
-			// 1.) give each runner its own stdoutbuf
-			// 2.) only return one channel on Run()
-			// 3.) this one channel contains stderr and stdout
-			// 4.) Put the loop below into runner.Run()
-			//	   - each stdout line gets written to runner.stdoutbuf
-			//	   - each stdout line gets sent through the one channel Run() returns
-			//	   - each stderr line gets sent through the one channel Run() returns
-			// 5.) Instead of the loop here, create a new goroutine that uses `range` over the one returned channel to print it
-			//     after printing it sets the cursor after the prompt
-
 			go func(inputlen int) {
-				defer tty.cursorAfterPrompt(inputlen)
-				for {
-					select {
-					case stdoutline, ok := <-outch:
-						if !ok {
-							outch = nil
-						}
-						printer.Print(stdoutline)
-						stdoutbuf.WriteString(stdoutline)
-					case stderrline, ok := <-errch:
-						if !ok {
-							errch = nil
-						}
-						printer.Print(stderrline)
-					}
-					if outch == nil && errch == nil {
-						return
-					}
+				for line := range ch {
+					printer.Print(line)
 				}
+				tty.cursorAfterPrompt(inputlen)
 			}(utf8.RuneCount(input))
 		}
 	}

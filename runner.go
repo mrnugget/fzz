@@ -18,36 +18,61 @@ func cmdWithInput(template []string, placeholder, input string) *exec.Cmd {
 }
 
 type Runner struct {
-	cmd      *exec.Cmd
-	stdinbuf *bytes.Buffer
-	wg       *sync.WaitGroup
+	cmd       *exec.Cmd
+	stdinbuf  *bytes.Buffer
+	stdoutbuf *bytes.Buffer
+	wg        *sync.WaitGroup
 }
 
 func NewRunner(template []string, placeholder, input string, stdin *bytes.Buffer) *Runner {
 	cmd := cmdWithInput(template, placeholder, input)
 
 	return &Runner{
-		cmd:      cmd,
-		stdinbuf: stdin,
-		wg:       &sync.WaitGroup{},
+		cmd:       cmd,
+		stdinbuf:  stdin,
+		stdoutbuf: &bytes.Buffer{},
+		wg:        &sync.WaitGroup{},
 	}
 }
 
-func (r *Runner) Run() (<-chan string, <-chan string, error) {
+func (r *Runner) Run() (<-chan string, error) {
 	stdout, err := r.cmd.StdoutPipe()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	stderr, err := r.cmd.StderrPipe()
 	if err != nil {
 		stdout.Close()
-		return nil, nil, err
+		return nil, err
 	}
 
 	r.wg.Add(2)
 	outch := r.streamOutput(stdout, r.wg)
 	errch := r.streamOutput(stderr, r.wg)
+	ch := make(chan string)
+
+	go func() {
+		for {
+			select {
+			case stdoutline, ok := <-outch:
+				if !ok {
+					outch = nil
+				}
+				r.stdoutbuf.WriteString(stdoutline)
+				ch <- stdoutline
+			case stderrline, ok := <-errch:
+				if !ok {
+					errch = nil
+				}
+				ch <- stderrline
+			}
+			if outch == nil && errch == nil {
+				close(ch)
+				return
+			}
+		}
+	}()
 
 	if r.stdinbuf.Len() != 0 {
 		r.cmd.Stdin = bytes.NewBuffer(r.stdinbuf.Bytes())
@@ -55,10 +80,10 @@ func (r *Runner) Run() (<-chan string, <-chan string, error) {
 
 	err = r.cmd.Start()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return outch, errch, nil
+	return ch, nil
 }
 
 func (r *Runner) streamOutput(rc io.ReadCloser, wg *sync.WaitGroup) <-chan string {
