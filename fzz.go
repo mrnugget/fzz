@@ -117,7 +117,9 @@ func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
 				input = nil
 			}
 		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
-			currentRunner.Wait()
+			if currentRunner != nil {
+				currentRunner.Wait()
+			}
 			tty.resetScreen()
 			io.Copy(os.Stdout, stdoutbuf)
 			return
