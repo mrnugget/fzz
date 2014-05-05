@@ -45,9 +45,8 @@ func (r *Runner) Run() (<-chan string, <-chan string, error) {
 		return nil, nil, err
 	}
 
-	r.wg.Add(1)
+	r.wg.Add(2)
 	outch := r.streamOutput(stdout, r.wg)
-	r.wg.Add(1)
 	errch := r.streamOutput(stderr, r.wg)
 
 	if r.stdinbuf.Len() != 0 {
