@@ -92,23 +92,27 @@ func removeLastCharacter(s []byte) []byte {
 	return s
 }
 
-func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
-	var currentRunner *Runner
-
-	input := make([]byte, 0)
-	ttych := make(chan []byte)
+func readCharacter(r io.Reader) <-chan []byte {
+	ch := make(chan []byte)
+	rs := bufio.NewScanner(r)
 
 	go func() {
-		rs := bufio.NewScanner(tty)
 		rs.Split(bufio.ScanRunes)
 
 		for rs.Scan() {
 			b := rs.Bytes()
-			ttych <- b
+			ch <- b
 		}
-
-		log.Fatal(rs.Err())
 	}()
+
+	return ch
+}
+
+func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
+	var currentRunner *Runner
+
+	input := make([]byte, 0)
+	ttych := readCharacter(tty)
 
 	tty.resetScreen()
 	tty.printPrompt(input[:len(input)])
