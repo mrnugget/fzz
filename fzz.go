@@ -148,11 +148,7 @@ func (fzz *Fzz) Loop() {
 			fzz.input = append(fzz.input, b...)
 		}
 
-		if fzz.currentRunner != nil {
-			go func(runner *Runner) {
-				runner.KillWait()
-			}(fzz.currentRunner)
-		}
+		fzz.killCurrentRunner()
 
 		fzz.tty.resetScreen()
 		fzz.tty.printPrompt(fzz.input[:len(fzz.input)])
@@ -173,6 +169,14 @@ func (fzz *Fzz) Loop() {
 				fzz.tty.cursorAfterPrompt(inputlen)
 			}(utf8.RuneCount(fzz.input))
 		}
+	}
+}
+
+func (fzz *Fzz) killCurrentRunner() {
+	if fzz.currentRunner != nil {
+		go func(runner *Runner) {
+			runner.KillWait()
+		}(fzz.currentRunner)
 	}
 }
 
