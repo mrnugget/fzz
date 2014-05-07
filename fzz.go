@@ -114,6 +114,7 @@ type Fzz struct {
 	stdinbuf      *bytes.Buffer
 	currentRunner *Runner
 	input         []byte
+	placeholder   string
 }
 
 func (fzz *Fzz) Loop() {
@@ -156,7 +157,7 @@ func (fzz *Fzz) Loop() {
 		fzz.printer.Reset()
 
 		if len(fzz.input) > 0 {
-			fzz.currentRunner = NewRunner(flag.Args(), placeholder, string(fzz.input), fzz.stdinbuf)
+			fzz.currentRunner = NewRunner(flag.Args(), fzz.placeholder, string(fzz.input), fzz.stdinbuf)
 			ch, err := fzz.currentRunner.Run()
 			if err != nil {
 				log.Fatal(err)
@@ -231,10 +232,11 @@ func main() {
 
 	printer := NewPrinter(tty, tty.cols, tty.rows-1) // prompt is one row
 	fzz := &Fzz{
-		printer: printer,
-		tty: tty,
-		stdinbuf: &stdinbuf,
-		input: make([]byte, 0),
+		printer:     printer,
+		tty:         tty,
+		stdinbuf:    &stdinbuf,
+		input:       make([]byte, 0),
+		placeholder: placeholder,
 	}
 	fzz.Loop()
 }
