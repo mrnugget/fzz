@@ -108,65 +108,70 @@ func readCharacter(r io.Reader) <-chan []byte {
 	return ch
 }
 
-func mainLoop(tty *TTY, printer *Printer, stdinbuf *bytes.Buffer) {
-	var currentRunner *Runner
+type Fzz struct {
+	tty           *TTY
+	printer       *Printer
+	stdinbuf      *bytes.Buffer
+	currentRunner *Runner
+	input         []byte
+}
 
-	input := make([]byte, 0)
-	ttych := readCharacter(tty)
+func (fzz *Fzz) Loop() {
+	ttych := readCharacter(fzz.tty)
 
-	tty.resetScreen()
-	tty.printPrompt(input[:len(input)])
+	fzz.tty.resetScreen()
+	fzz.tty.printPrompt(fzz.input[:len(fzz.input)])
 
 	for {
 		b := <-ttych
 
 		switch b[0] {
 		case keyBackspace, keyDelete:
-			input = removeLastCharacter(input)
+			fzz.input = removeLastCharacter(fzz.input)
 		case keyEndOfTransmission, keyLineFeed, keyCarriageReturn:
-			if currentRunner != nil {
-				currentRunner.Wait()
-				tty.resetScreen()
-				io.Copy(os.Stdout, currentRunner.stdoutbuf)
+			if fzz.currentRunner != nil {
+				fzz.currentRunner.Wait()
+				fzz.tty.resetScreen()
+				io.Copy(os.Stdout, fzz.currentRunner.stdoutbuf)
 			} else {
-				tty.resetScreen()
+				fzz.tty.resetScreen()
 			}
 			return
 		case keyEscape:
-			tty.resetScreen()
+			fzz.tty.resetScreen()
 			return
 		case keyEndOfTransmissionBlock:
-			input = removeLastWord(input)
+			fzz.input = removeLastWord(fzz.input)
 		default:
 			// TODO: Default is wrong here. Only append printable characters to
 			// input
-			input = append(input, b...)
+			fzz.input = append(fzz.input, b...)
 		}
 
-		if currentRunner != nil {
+		if fzz.currentRunner != nil {
 			go func(runner *Runner) {
 				runner.KillWait()
-			}(currentRunner)
+			}(fzz.currentRunner)
 		}
 
-		tty.resetScreen()
-		tty.printPrompt(input[:len(input)])
+		fzz.tty.resetScreen()
+		fzz.tty.printPrompt(fzz.input[:len(fzz.input)])
 
-		printer.Reset()
+		fzz.printer.Reset()
 
-		if len(input) > 0 {
-			currentRunner = NewRunner(flag.Args(), placeholder, string(input), stdinbuf)
-			ch, err := currentRunner.Run()
+		if len(fzz.input) > 0 {
+			fzz.currentRunner = NewRunner(flag.Args(), placeholder, string(fzz.input), fzz.stdinbuf)
+			ch, err := fzz.currentRunner.Run()
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			go func(inputlen int) {
 				for line := range ch {
-					printer.Print(line)
+					fzz.printer.Print(line)
 				}
-				tty.cursorAfterPrompt(inputlen)
-			}(utf8.RuneCount(input))
+				fzz.tty.cursorAfterPrompt(inputlen)
+			}(utf8.RuneCount(fzz.input))
 		}
 	}
 }
@@ -221,5 +226,11 @@ func main() {
 	}
 
 	printer := NewPrinter(tty, tty.cols, tty.rows-1) // prompt is one row
-	mainLoop(tty, printer, &stdinbuf)
+	fzz := &Fzz{
+		printer: printer,
+		tty: tty,
+		stdinbuf: &stdinbuf,
+		input: make([]byte, 0),
+	}
+	fzz.Loop()
 }
