@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -144,9 +145,9 @@ func (fzz *Fzz) Loop() {
 		case keyEndOfTransmissionBlock:
 			fzz.input = removeLastWord(fzz.input)
 		default:
-			// TODO: Default is wrong here. Only append printable characters to
-			// input
-			fzz.input = append(fzz.input, b...)
+			if r, _ := utf8.DecodeRune(b); unicode.IsPrint(r) {
+				fzz.input = append(fzz.input, b...)
+			}
 		}
 
 		fzz.killCurrentRunner()
