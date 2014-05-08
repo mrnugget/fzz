@@ -147,6 +147,8 @@ func (fzz *Fzz) Loop() {
 		default:
 			if r, _ := utf8.DecodeRune(b); unicode.IsPrint(r) {
 				fzz.input = append(fzz.input, b...)
+			} else {
+				continue
 			}
 		}
 
