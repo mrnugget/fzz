@@ -134,7 +134,9 @@ func (fzz *Fzz) Loop() {
 			if fzz.currentRunner != nil {
 				fzz.currentRunner.Wait()
 				fzz.tty.resetScreen()
-				io.Copy(os.Stdout, fzz.currentRunner.stdoutbuf)
+				if len(fzz.input) > 0 {
+					io.Copy(os.Stdout, fzz.currentRunner.stdoutbuf)
+				}
 			} else {
 				fzz.tty.resetScreen()
 			}
