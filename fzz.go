@@ -172,12 +172,7 @@ func (fzz *Fzz) startNewRunner() error {
 		return err
 	}
 
-	go func(inputlen int) {
-		for line := range ch {
-			fzz.printer.Print(line)
-		}
-		fzz.tty.cursorAfterPrompt(inputlen)
-	}(utf8.RuneCount(fzz.input))
+	go fzz.printRunnerOutput(ch, utf8.RuneCount(fzz.input))
 
 	return nil
 }
@@ -194,6 +189,13 @@ func (fzz *Fzz) reset() {
 	fzz.tty.resetScreen()
 	fzz.tty.printPrompt(fzz.input[:len(fzz.input)])
 	fzz.printer.Reset()
+}
+
+func (fzz *Fzz) printRunnerOutput(out <-chan string, inputlen int) {
+	for line := range out {
+		fzz.printer.Print(line)
+	}
+	fzz.tty.cursorAfterPrompt(inputlen)
 }
 
 func main() {
