@@ -116,6 +116,7 @@ type Fzz struct {
 	currentRunner *Runner
 	input         []byte
 	placeholder   string
+	args          []string
 }
 
 func (fzz *Fzz) Loop() {
@@ -162,20 +163,28 @@ func (fzz *Fzz) Loop() {
 		fzz.printer.Reset()
 
 		if len(fzz.input) > 0 {
-			fzz.currentRunner = NewRunner(flag.Args(), fzz.placeholder, string(fzz.input), fzz.stdinbuf)
-			ch, err := fzz.currentRunner.Run()
-			if err != nil {
+			if err := fzz.startNewRunner(); err != nil {
 				log.Fatal(err)
 			}
-
-			go func(inputlen int) {
-				for line := range ch {
-					fzz.printer.Print(line)
-				}
-				fzz.tty.cursorAfterPrompt(inputlen)
-			}(utf8.RuneCount(fzz.input))
 		}
 	}
+}
+
+func (fzz *Fzz) startNewRunner() error {
+	fzz.currentRunner = NewRunner(fzz.args, fzz.placeholder, string(fzz.input), fzz.stdinbuf)
+	ch, err := fzz.currentRunner.Run()
+	if err != nil {
+		return err
+	}
+
+	go func(inputlen int) {
+		for line := range ch {
+			fzz.printer.Print(line)
+		}
+		fzz.tty.cursorAfterPrompt(inputlen)
+	}(utf8.RuneCount(fzz.input))
+
+	return nil
 }
 
 func (fzz *Fzz) killCurrentRunner() {
@@ -242,6 +251,7 @@ func main() {
 		stdinbuf:    &stdinbuf,
 		input:       make([]byte, 0),
 		placeholder: placeholder,
+		args:        flag.Args(),
 	}
 	fzz.Loop()
 }
