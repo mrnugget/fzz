@@ -120,11 +120,9 @@ type Fzz struct {
 }
 
 func (fzz *Fzz) Loop() {
+	fzz.reset()
+
 	ttych := readCharacter(fzz.tty)
-
-	fzz.tty.resetScreen()
-	fzz.tty.printPrompt(fzz.input[:len(fzz.input)])
-
 	for {
 		b := <-ttych
 
@@ -157,10 +155,7 @@ func (fzz *Fzz) Loop() {
 
 		fzz.killCurrentRunner()
 
-		fzz.tty.resetScreen()
-		fzz.tty.printPrompt(fzz.input[:len(fzz.input)])
-
-		fzz.printer.Reset()
+		fzz.reset()
 
 		if len(fzz.input) > 0 {
 			if err := fzz.startNewRunner(); err != nil {
@@ -193,6 +188,12 @@ func (fzz *Fzz) killCurrentRunner() {
 			runner.KillWait()
 		}(fzz.currentRunner)
 	}
+}
+
+func (fzz *Fzz) reset() {
+	fzz.tty.resetScreen()
+	fzz.tty.printPrompt(fzz.input[:len(fzz.input)])
+	fzz.printer.Reset()
 }
 
 func main() {
