@@ -98,6 +98,15 @@ Use it as interactive project search in vim
 Then use `:grep` in Vim to start it. **fzz** will then fill the quickfix window
 with its results.
 
+Or use the placeholder Vim provides to set the initial input of fzz:
+
+```
+set grepprg=fzz\ ag\ --nogroup\ --nocolor\ \{\{\$*}\}
+```
+
+Then you can use `:grep mysearchterm`, see the results and refine them if
+necessary.
+
 ### Interactively search files and open the results in your editor
 
 Put this in your shell config and configure it to use your favorite editor:
