@@ -50,3 +50,57 @@ func TestReadCharacter(t *testing.T) {
 		}
 	}
 }
+
+var extractInputTests = []struct {
+	args        []string
+	p           string
+	resultInput string
+	resultArgs  []string
+}{
+	{
+		args:        []string{"ag", "{{}}", "*.go"},
+		p:           "{{}}",
+		resultInput: "",
+		resultArgs:  []string{"ag", "{{}}", "*.go"},
+	},
+	{
+		args:        []string{"ag", "%%", "*.go"},
+		p:           "%%",
+		resultInput: "",
+		resultArgs:  []string{"ag", "%%", "*.go"},
+	},
+	{
+		args:        []string{"ag", "{{foobar}}", "*.go"},
+		p:           "{{}}",
+		resultInput: "foobar",
+		resultArgs:  []string{"ag", "{{}}", "*.go"},
+	},
+	{
+		args:        []string{"ag", "%foobar%", "*.go"},
+		p:           "%%",
+		resultInput: "foobar",
+		resultArgs:  []string{"ag", "%%", "*.go"},
+	},
+}
+
+func TestExtractInput(t *testing.T) {
+	for _, tt := range extractInputTests {
+		rinput, rargs := extractInput(tt.args, tt.p)
+
+		if rinput != tt.resultInput {
+			t.Errorf("resultInput wrong. expected: %v, got: %v", tt.resultInput, rinput)
+			continue
+		}
+
+		if len(rargs) != len(tt.resultArgs) {
+			t.Errorf("resultArgs have wrong length. expected: %v, got: %v", len(tt.resultArgs), len(rargs))
+			continue
+		}
+
+		for i, _ := range tt.resultArgs {
+			if rargs[i] != tt.resultArgs[i] {
+				t.Errorf("resultArg wrong. expected: %v, got: %v", tt.resultArgs[i], rargs[i])
+			}
+		}
+	}
+}

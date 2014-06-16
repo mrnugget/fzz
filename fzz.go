@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -107,6 +108,24 @@ func readCharacter(r io.Reader) <-chan []byte {
 	}()
 
 	return ch
+}
+
+func extractInput(args []string, p string) (input string, r []string) {
+	hl := len(p) / 2
+	expr := fmt.Sprintf("%s(.*)%s", p[:hl], p[hl:])
+	matchPlaceholder := regexp.MustCompile(expr)
+
+	for _, arg := range args {
+		matches := matchPlaceholder.FindStringSubmatch(arg)
+		if len(matches) > 1 {
+			input = matches[1]
+			r = append(r, p)
+		} else {
+			r = append(r, arg)
+		}
+	}
+
+	return
 }
 
 type Fzz struct {
