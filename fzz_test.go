@@ -81,6 +81,24 @@ var extractInputTests = []struct {
 		resultInput: "foobar",
 		resultArgs:  []string{"ag", "%%", "*.go"},
 	},
+	{
+		args:        []string{"ag", "%foobar%", "*.go"},
+		p:           "%%",
+		resultInput: "foobar",
+		resultArgs:  []string{"ag", "%%", "*.go"},
+	},
+	{
+		args:        []string{"ag", "{{foo bar}}", "*.go"},
+		p:           "{{}}",
+		resultInput: "foo bar",
+		resultArgs:  []string{"ag", "{{}}", "*.go"},
+	},
+	{
+		args:        []string{"ag", "%foo bar%", "*.go"},
+		p:           "%%",
+		resultInput: "foo bar",
+		resultArgs:  []string{"ag", "%%", "*.go"},
+	},
 }
 
 func TestExtractInput(t *testing.T) {
