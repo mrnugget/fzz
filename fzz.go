@@ -143,8 +143,13 @@ func (fzz *Fzz) Loop() {
 
 	ttych := readCharacter(fzz.tty)
 	for {
-		b := <-ttych
+		if len(fzz.input) > 0 {
+			if err := fzz.startNewRunner(); err != nil {
+				log.Fatal(err)
+			}
+		}
 
+		b := <-ttych
 		switch b[0] {
 		case keyBackspace, keyDelete:
 			fzz.input = removeLastCharacter(fzz.input)
@@ -175,12 +180,6 @@ func (fzz *Fzz) Loop() {
 		fzz.killCurrentRunner()
 
 		fzz.reset()
-
-		if len(fzz.input) > 0 {
-			if err := fzz.startNewRunner(); err != nil {
-				log.Fatal(err)
-			}
-		}
 	}
 }
 
