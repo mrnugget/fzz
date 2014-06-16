@@ -123,3 +123,4 @@ func TestExtractInput(t *testing.T) {
 		}
 	}
 }
+
