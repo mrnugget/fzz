@@ -241,7 +241,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if !containsPlaceholder(flag.Args(), placeholder) {
+	input, args := extractInput(flag.Args(), placeholder)
+
+	if !containsPlaceholder(args, placeholder) {
 		fmt.Fprintln(os.Stderr, "No placeholder in arguments")
 		os.Exit(1)
 	}
@@ -267,13 +269,14 @@ func main() {
 	}
 
 	printer := NewPrinter(tty, tty.cols, tty.rows-1) // prompt is one row
+
 	fzz := &Fzz{
 		printer:     printer,
 		tty:         tty,
 		stdinbuf:    &stdinbuf,
-		input:       make([]byte, 0),
+		input:       []byte(input),
 		placeholder: placeholder,
-		args:        flag.Args(),
+		args:        args,
 	}
 	fzz.Loop()
 }

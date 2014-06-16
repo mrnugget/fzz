@@ -56,6 +56,7 @@ var extractInputTests = []struct {
 	p           string
 	resultInput string
 	resultArgs  []string
+	err error
 }{
 	{
 		args:        []string{"ag", "{{}}", "*.go"},
