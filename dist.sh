@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds and packages the binaries for Darwin/amd64 and Linux/amd64
 
-version=$(cat fzz.go | grep "VERSION\s*=" | awk '{print $NF}' | sed 's/\"//g')
+version=$(cat main.go | grep "VERSION\s*=" | awk '{print $NF}' | sed 's/\"//g')
 arch=$(go env GOARCH)
 
 go test || (echo 'Tests failed. Stopping...' && exit 1)
