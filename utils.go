@@ -77,14 +77,14 @@ func readCharacter(r io.Reader) <-chan []byte {
 
 func extractInput(args []string, p string) (input string, r []string) {
 	hl := len(p) / 2
-	expr := fmt.Sprintf("%s(.*)%s", p[:hl], p[hl:])
+	expr := fmt.Sprintf("(.*)%s(.*)%s(.*)", p[:hl], p[hl:])
 	matchPlaceholder := regexp.MustCompile(expr)
 
 	for _, arg := range args {
 		matches := matchPlaceholder.FindStringSubmatch(arg)
-		if len(matches) > 1 {
-			input = matches[1]
-			r = append(r, p)
+		if len(matches) > 3 {
+			input = matches[2]
+			r = append(r, matches[1]+p+matches[3])
 		} else {
 			r = append(r, arg)
 		}
