@@ -9,6 +9,8 @@ look and pay close attention to the bee's knees here:
 
 ## Installation
 
+Current version: 1.0.1
+
 ### Download the binaries
 
 Download the [current release](https://github.com/mrnugget/fzz/releases) for
