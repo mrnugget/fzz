@@ -69,7 +69,6 @@ func (fzz *Fzz) Loop() {
 		}
 
 		fzz.killCurrentRunner()
-
 		fzz.reset()
 	}
 }
