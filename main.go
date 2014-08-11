@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	VERSION                   = "1.0.1"
-	defaultPlaceholder        = "{{}}"
+	VERSION            = "1.0.1"
+	defaultPlaceholder = "{{}}"
 )
 
 var placeholder string

@@ -31,8 +31,8 @@ type Fzz struct {
 
 func (fzz *Fzz) Loop() {
 	fzz.reset()
-
 	ttych := readCharacter(fzz.tty)
+
 	for {
 		if len(fzz.input) > 0 {
 			if err := fzz.startNewRunner(); err != nil {

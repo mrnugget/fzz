@@ -56,7 +56,7 @@ var extractInputTests = []struct {
 	p           string
 	resultInput string
 	resultArgs  []string
-	err error
+	err         error
 }{
 	{
 		args:        []string{"ag", "{{}}", "*.go"},
@@ -135,4 +135,3 @@ func TestExtractInput(t *testing.T) {
 		}
 	}
 }
-
