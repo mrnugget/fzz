@@ -5,7 +5,7 @@
 **fzz** allows you to change the input of a single command interactively. Have a
 look and pay close attention to the bee's knees here:
 
-![fzz-gif-cast](http://recordit.co/FCnvkoyAKV.gif)
+![fzz-gif-cast2](https://s3-eu-west-1.amazonaws.com/fzz/fzz_demo.gif)
 
 ## Installation
 
