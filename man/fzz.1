@@ -1,0 +1,62 @@
+.TH FZZ 1
+.SH NAME
+.PP
+fzz \-\- run commands interactively
+.SH SYNOPSIS
+.PP
+\fB\fCfzz\fR [command with \fB\fC{{}}\fR placeholder]
+.SH DESCRIPTION
+.PP
+\fB\fCfoo\fR makes it possible to run command line utilities interactively, by
+allowing to change the input passed to commands in an interactive interface.
+The interface shows the current output of the specified command with the
+current input. As soon as the input changes, the command is re\-run and the
+output updated.
+.PP
+The specified command MUST include the default placeholder \fB\fC{{}}\fR
+.SH OPTIONS
+.TP
+\fB\fC\-v\fR
+Print version and exit
+.SH EXAMPLES
+.PP
+Run \fB\fCgrep\fR interactively:
+.PP
+.RS
+.nf
+fzz grep {{}} *.txt
+.fi
+.RE
+.PP
+Run \fB\fCfind\fR interactively:
+.PP
+.RS
+.nf
+fzz find . \-iname "*{{}}*"
+.fi
+.RE
+.PP
+Run \fB\fCgrep\fR interactively and read from STDIN:
+.PP
+.RS
+.nf
+cat hello_world.txt | fzz grep {{}}
+.fi
+.RE
+.PP
+Run \fB\fCgrep\fR interactively with a custom placeholder:
+.PP
+.RS
+.nf
+FZZ_PLACEHOLDER=%% fzz grep %% *.txt
+.fi
+.RE
+.SH ENVIRONMET
+.TP
+\fB\fCFZZ_PLACEHOLDER\fR
+Setting this variable changes the placeholder fzz uses from \fB\fC{{}}\fR to the one
+specified.
+.SH AUTHOR
+.PP
+Thorsten Ball 
+\[la]mrnugget@gmail.com\[ra]
