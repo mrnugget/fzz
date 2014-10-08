@@ -13,7 +13,12 @@ The interface shows the current output of the specified command with the
 current input. As soon as the input changes, the command is re\-run and the
 output updated.
 .PP
+The place where the input to the command is changed interactively is determined
+by the location of the placeholder in the command.
+.PP
 The specified command MUST include the default placeholder \fB\fC{{}}\fR
+.PP
+To use an initial input value specify it inside the placeholder parts.
 .SH OPTIONS
 .TP
 \fB\fC\-v\fR
@@ -44,11 +49,27 @@ cat hello_world.txt | fzz grep {{}}
 .fi
 .RE
 .PP
+Run \fB\fCgrep\fR interactively with an initial value set:
+.PP
+.RS
+.nf
+fzz grep {{hello}} *.txt
+.fi
+.RE
+.PP
 Run \fB\fCgrep\fR interactively with a custom placeholder:
 .PP
 .RS
 .nf
 FZZ_PLACEHOLDER=%% fzz grep %% *.txt
+.fi
+.RE
+.PP
+Run \fB\fCgrep\fR interactively with a custom placeholder and an initial value set:
+.PP
+.RS
+.nf
+FZZ_PLACEHOLDER=%% fzz grep %hello% *.txt
 .fi
 .RE
 .SH ENVIRONMET

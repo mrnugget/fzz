@@ -20,7 +20,12 @@ The interface shows the current output of the specified command with the
 current input. As soon as the input changes, the command is re-run and the
 output updated.
 
+The place where the input to the command is changed interactively is determined
+by the location of the placeholder in the command.
+
 The specified command MUST include the default placeholder `{{}}`
+
+To use an initial input value specify it inside the placeholder parts.
 
 OPTIONS
 -------
@@ -43,9 +48,17 @@ Run `grep` interactively and read from STDIN:
 
     cat hello_world.txt | fzz grep {{}}
 
+Run `grep` interactively with an initial value set:
+
+    fzz grep {{hello}} *.txt
+
 Run `grep` interactively with a custom placeholder:
 
     FZZ_PLACEHOLDER=%% fzz grep %% *.txt
+
+Run `grep` interactively with a custom placeholder and an initial value set:
+
+    FZZ_PLACEHOLDER=%% fzz grep %hello% *.txt
 
 ENVIRONMET
 -----------
