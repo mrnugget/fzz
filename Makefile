@@ -1,5 +1,29 @@
-MAN_DIR  := ./man
-MAN_PAGE := $(MAN_DIR)/fzz.1
+DESTDIR    ?= /usr/local
+MAN_DIR    := ./man
+MAN_PAGE   := $(MAN_DIR)/fzz.1
+EXECUTABLE := fzz
+
+.PHONY: all
+
+all: man fzz
+
+install: all
+	install -d $(DESTDIR)/bin
+	install -d $(DESTDIR)/share/man/man1
+	install $(EXECUTABLE) $(DESTDIR)/bin
+	cp -R $(MAN_PAGE) $(DESTDIR)/share/man/man1
+
+#
+# fzz executable
+#
+
+$(EXECUTABLE): *.go
+	go fmt
+	go build -o $(EXECUTABLE)
+
+#
+# man page
+#
 
 $(MAN_DIR)/%.1: $(MAN_DIR)/%.markdown
 	@which md2man-roff >/dev/null || (echo "md2man missing: gem install md2man"; exit 1)
