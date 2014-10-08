@@ -22,6 +22,13 @@ $(EXECUTABLE): *.go
 	go build -o $(EXECUTABLE)
 
 #
+# tests
+#
+
+test:
+	go test -v
+
+#
 # man page
 #
 
