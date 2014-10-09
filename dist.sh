@@ -12,8 +12,13 @@ for os in linux darwin; do
 
   mkdir -p dist/$target
   GOOS=$os go build -o dist/$target/fzz . || exit 1
+
   cp README.md dist/$target
   cp LICENSE dist/$target
+  cp Makefile dist/$target
+
+  mkdir dist/$target/man
+  cp man/*.1 dist/$target/man
 
   cd dist
   tar czvf $target.tar.gz $target

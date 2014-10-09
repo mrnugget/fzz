@@ -5,9 +5,9 @@ EXECUTABLE := fzz
 
 .PHONY: all
 
-all: man fzz
+all: man $(EXECUTABLE)
 
-install: all
+install:
 	install -d $(DESTDIR)/bin
 	install -d $(DESTDIR)/share/man/man1
 	install $(EXECUTABLE) $(DESTDIR)/bin
