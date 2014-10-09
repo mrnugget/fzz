@@ -7,6 +7,9 @@ EXECUTABLE := fzz
 
 all: man $(EXECUTABLE)
 
+clean:
+	rm $(EXECUTABLE)
+
 install:
 	install -d $(DESTDIR)/bin
 	install -d $(DESTDIR)/share/man/man1
