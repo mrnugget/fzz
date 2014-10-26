@@ -98,10 +98,9 @@ header h2 {
   max-width: 100%;
 }
 
-#downloads {
-  margin-bottom: 40px;
+#links a {
+  text-decoration: underline;
 }
-
 code, pre {
   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal;
   color: #222;

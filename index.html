@@ -22,6 +22,13 @@
           <h2>fzz makes your command line interactive!</h2>
         </header>
 
+        <section id="links" class="clearfix">
+          <a href="#installation"><span>Install</span></a> |
+          <a href="https://github.com/mrnugget/fzz"><span>Source</span></a> |
+          <a href="https://github.com/mrnugget/fzz/releases"><span>Releases</span></a> |
+          <a href="https://github.com/mrnugget/fzz/issues"><span>Issues</span></a>
+        </section>
+
         <hr>
 
         <section id="main_content">
@@ -34,7 +41,7 @@ look and pay close attention to the bee's knees here:</p>
 <p><img src="https://s3-eu-west-1.amazonaws.com/fzz/fzz_demo.gif" alt="fzz-gif-cast2"></p>
 
 <h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+<a id="installation" name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
 
 <h3>
 <a name="download-the-binaries" class="anchor" href="#download-the-binaries"><span class="octicon octicon-link"></span></a>Download the binaries</h3>
@@ -73,48 +80,39 @@ show you what <code>grep</code> wrote to its STDOUT or, hopefully not, to its ST
 <p>Once you're happy with the presented results simply press <strong>return</strong> to quit
 <strong>fzz</strong> and have the results printed to STDOUT.</p>
 
-<p>Since the results will be printed to STDOUT you can use <strong>fzz</strong> with pipes:</p>
+<h2>Usage Examples</h2>
 
-<pre><code>fzz grep {{}} *.go | head -n 1 | awk -F":" '{print $1}'
-</code></pre>
+<h3>Providing initial input</h3>
+<p>You can pass an initial input to <strong>fzz</strong> by putting it inside the placeholder:</p>
 
-<p><strong>fzz</strong> buffers its STDIN and passes it on to the specified command. That means
-you can put pipes all around it:</p>
+<pre><code>fzz grep {{my_pattern}} *.go</code></pre>
 
-<pre><code>grep 'func' *.go | fzz grep {{}} | head -n 1
-</code></pre>
+<h3>Writing to a pipe</h3>
+<p>After pressing <strong>return</strong>, <strong>fzz</strong> prints to STDOUT. That means, you can use it with pipes:</p>
 
-<p>If you want to change the placeholder, you can do that by specifying it with the
-environment variable <code>FZZ_PLACEHOLDER</code>:</p>
+<pre><code>fzz grep {{}} *.go | head -n 1 | awk -f":" '{print $1}' </code></pre>
 
-<pre><code>FZZ_PLACEHOLDER=%% fzz grep %% *.go
-</code></pre>
+<h3>Reading from STDIN</h3>
+<p><strong>fzz</strong> happily reads from STDIN and buffers the input to be used
+with the command. So, this is possible:</p>
 
-<h2>
-<a name="usage-examples" class="anchor" href="#usage-examples"><span class="octicon octicon-link"></span></a>Usage Examples</h2>
+<pre><code>grep 'func' *.go | fzz grep {{}} | head -n 1 </code></pre>
 
-<h3>
-<a name="searching-with-ag" class="anchor" href="#searching-with-ag"><span class="octicon octicon-link"></span></a>Searching with ag</h3>
-
+<h3>Searching with ag</h3>
 <p>Use <strong>fzz</strong> to search through your current directory with
 <a href="https://github.com/ggreer/the_silver_searcher">the_silver_searcher</a>
 interactively:</p>
 
-<pre><code>fzz ag {{}}
-</code></pre>
+<pre><code>fzz ag {{}} </code></pre>
 
-<h3>
-<a name="fzz-and-find-for-interactive-file-search" class="anchor" href="#fzz-and-find-for-interactive-file-search"><span class="octicon octicon-link"></span></a>fzz and find for interactive file search</h3>
-
+<h3>fzz and find for interactive file search</h3>
 <p>We can combine <code>find</code> and <code>fzz</code> to interactively search for files that match our
 input pattern:</p>
 
 <pre><code>fzz find ./Documents -iname "*{{}}*"
 </code></pre>
 
-<h3>
-<a name="use-it-in-vim-to-grep-through-your-project" class="anchor" href="#use-it-in-vim-to-grep-through-your-project"><span class="octicon octicon-link"></span></a>Use it in Vim to grep through your project</h3>
-
+<h3>Use it in Vim to grep through your project</h3>
 <p>Use it as interactive project search in vim</p>
 
 <pre><code>:set grepprg=fzz\ ag\ \{\{\}\}
@@ -131,15 +129,19 @@ with its results.</p>
 <p>Then you can use <code>:grep mysearchterm</code>, see the results and refine them if
 necessary.</p>
 
-<h3>
-<a name="interactively-search-files-and-open-the-results-in-your-editor" class="anchor" href="#interactively-search-files-and-open-the-results-in-your-editor"><span class="octicon octicon-link"></span></a>Interactively search files and open the results in your editor</h3>
-
+<h3>Interactively search files and open the results in your editor</h3>
 <p>Put this in your shell config and configure it to use your favorite editor:</p>
 
 <div class="highlight highlight-bash"><pre>vimfzz<span class="o">()</span> <span class="o">{</span>
   vim <span class="k">$(</span>fzz ag <span class="o">{{}}</span> <span class="p">|</span> awk -F<span class="s2">":"</span> <span class="s1">'{print $1}'</span> <span class="p">|</span> uniq<span class="k">)</span>
 <span class="o">}</span>
 </pre></div>
+
+<h3>Using a different placeholder</h3>
+<p>You can specify your placeholder with the <code>FZZ_PLACEHOLDER</code> variable:</p>
+
+<pre><code>FZZ_PLACEHOLDER=%% fzz grep %% *.go
+</code></pre>
 
 <h2>
 <a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h2>
