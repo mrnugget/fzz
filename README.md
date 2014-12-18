@@ -91,23 +91,17 @@ fzz find ./Documents -iname "*{{}}*"
 
 ### Use it in Vim to grep through your project
 
-Use it as interactive project search in vim
+Use it as interactive search in Vim by setting it to `grepprg`:
 
 ```
-:set grepprg=fzz\ ag\ \{\{\}\}
+:set grepprg=fzz\ ag\ --nogroup\ --nocolor\ \{\{\$*}\}
 ```
 
-Then use `:grep` in Vim to start it. **fzz** will then fill the quickfix window
-with its results.
+Then use `:grep <searchterm>` in Vim to start it. **fzz** will then fill the
+quickfix list with its results.
 
-Or use the placeholder Vim provides to set the initial input of fzz:
-
-```
-set grepprg=fzz\ ag\ --nogroup\ --nocolor\ \{\{\$*}\}
-```
-
-Then you can use `:grep mysearchterm`, see the results and refine them if
-necessary.
+Use [fzz.vim](https://github.com/mrnugget/vim-fzz) for more flexibility and
+features.
 
 ### Interactively search files and open the results in your editor
 
