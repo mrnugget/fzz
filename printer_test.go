@@ -5,6 +5,14 @@ import (
 	"testing"
 )
 
+var input = []string{
+	"xxxYYYzzz\n",
+	"xxxYYYzzz\n",
+	"xxxYYYzzz\n",
+	"xxxYYYzzz\n",
+	"xxxYYYzzz\n",
+}
+
 var printTests = []struct {
 	lines    []string
 	cols     int
@@ -12,28 +20,28 @@ var printTests = []struct {
 	expected string
 }{
 	{ // Normal
-		[]string{"foobar\n"},
-		80,
-		20,
-		"\nfoobar\n",
+		input,
+		999,
+		999,
+		"\nxxxYYYzzz\nxxxYYYzzz\nxxxYYYzzz\nxxxYYYzzz\nxxxYYYzzz\n",
 	},
 	{ // Too many lines
-		[]string{"foobar\n", "foobar\n", "foobar\n"},
-		99,
-		2,
-		"\nfoobar\nfoobar",
+		input,
+		999,
+		3,
+		"\nxxxYYYzzz\nxxxYYYzzz\nxxxYYYzzz",
 	},
 	{ // Lines too wide
-		[]string{"foobar\n"},
+		input,
 		3,
-		99,
-		"\nfoo\n",
+		999,
+		"\nxxx\nxxx\nxxx\nxxx\nxxx\n",
 	},
 	{ // Too many too wide lines
-		[]string{"xxxYYYzzz\n", "xxxYYYzzz\n", "xxxYYYzzz\n", "xxxYYYzzz\n", "xxxYYYzzz\n"},
-		6,
-		4,
-		"\nxxxYYY\nxxxYYY\nxxxYYY\nxxxYYY",
+		input,
+		3,
+		3,
+		"\nxxx\nxxx\nxxx",
 	},
 }
 
