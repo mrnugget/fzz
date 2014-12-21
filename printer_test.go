@@ -29,7 +29,7 @@ var printTests = []struct {
 		99,
 		"\nfoo\n",
 	},
-	{
+	{ // Too many too wide lines
 		[]string{"xxxYYYzzz\n", "xxxYYYzzz\n", "xxxYYYzzz\n", "xxxYYYzzz\n", "xxxYYYzzz\n"},
 		6,
 		4,
