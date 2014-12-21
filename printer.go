@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 )
 
@@ -41,13 +42,7 @@ func (p *Printer) Print(line string) (n int, err error) {
 		fmt.Fprintf(p.target, "\n")
 	}
 
-	// If we're on the last line, cut the newline character off
-	if p.printed == p.maxRow-1 && len(line) > 0 && line[len(line)-1] == '\n' {
-		n, err = p.printLine(line[:len(line)-1])
-	} else {
-		n, err = p.printLine(line)
-	}
-
+	n, err = p.printLine(line)
 	if err == nil {
 		p.printed++
 	}
@@ -56,15 +51,19 @@ func (p *Printer) Print(line string) (n int, err error) {
 }
 
 func (p *Printer) printLine(line string) (n int, err error) {
-	if len(line) > p.maxCol {
-		if p.printed == p.maxRow-1 {
-			n, err = fmt.Fprintf(p.target, "%s", line[:p.maxCol])
-		} else {
-			n, err = fmt.Fprintf(p.target, "%s\n", line[:p.maxCol])
-		}
-	} else {
-		n, err = fmt.Fprintf(p.target, "%s", line)
+	line = strings.TrimSuffix(line, "\n")
+
+	num := len(line)
+	if num > p.maxCol {
+		num = p.maxCol
 	}
+
+	format := "%s\n"
+	if p.printed == p.maxRow-1 { // do not print newline on last line
+		format = "%s"
+	}
+
+	n, err = fmt.Fprintf(p.target, format, line[:num])
 	return
 }
 
