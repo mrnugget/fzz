@@ -27,7 +27,7 @@ func TestPrintNormal(t *testing.T) {
 func TestPrintTooLong(t *testing.T) {
 	testTarget := new(bytes.Buffer)
 	testLine := "foobar\n"
-	printer := NewPrinter(testTarget, 80, 1)
+	printer := NewPrinter(testTarget, 99, 2)
 
 	for i := 0; i < printer.maxRow+1; i++ {
 		_, err := printer.Print(testLine)
@@ -37,7 +37,7 @@ func TestPrintTooLong(t *testing.T) {
 	}
 
 	// Cut of the newline char on the last line
-	if testTarget.String() != "\n"+testLine[:len(testLine)-1] {
+	if testTarget.String() != "\nfoobar\nfoobar" {
 		t.Errorf("wrong output written: %q", testTarget.String())
 	}
 }
@@ -45,7 +45,7 @@ func TestPrintTooLong(t *testing.T) {
 func TestPrintTooWide(t *testing.T) {
 	testTarget := new(bytes.Buffer)
 	testLine := "foobar\n"
-	printer := NewPrinter(testTarget, 3, 1)
+	printer := NewPrinter(testTarget, 3, 99)
 
 	expectedN := printer.maxCol + 1
 	expectedStr := "\nfoo\n"
@@ -64,7 +64,31 @@ func TestPrintTooWide(t *testing.T) {
 	if output != expectedStr {
 		t.Errorf("wrong output written. expected: %q, got: %q", expectedStr, output)
 	}
+}
 
+func TestPrintTooWideTooLong(t *testing.T) {
+	testTarget := new(bytes.Buffer)
+	testLines := []string{
+		"foobarbarfoo\n",
+		"foobarbarfoo\n",
+		"foobarbarfoo\n",
+		"foobarbarfoo\n",
+		"foobarbarfoo\n",
+	}
+	expectedStr := "\nfoobarbarf\nfoobarbarf\nfoobarbarf\nfoobarbarf"
+
+	printer := NewPrinter(testTarget, 10, 4)
+
+	for _, line := range testLines {
+		_, err := printer.Print(line)
+		if err != nil {
+			t.Errorf("error printing: %s", err)
+		}
+	}
+	output := testTarget.String()
+	if output != expectedStr {
+		t.Errorf("wrong output written. expected: %q, got: %q", expectedStr, output)
+	}
 }
 
 func TestReset(t *testing.T) {

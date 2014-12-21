@@ -57,7 +57,11 @@ func (p *Printer) Print(line string) (n int, err error) {
 
 func (p *Printer) printLine(line string) (n int, err error) {
 	if len(line) > p.maxCol {
-		n, err = fmt.Fprintf(p.target, "%s\n", line[:p.maxCol])
+		if p.printed == p.maxRow-1 {
+			n, err = fmt.Fprintf(p.target, "%s", line[:p.maxCol])
+		} else {
+			n, err = fmt.Fprintf(p.target, "%s\n", line[:p.maxCol])
+		}
 	} else {
 		n, err = fmt.Fprintf(p.target, "%s", line)
 	}
