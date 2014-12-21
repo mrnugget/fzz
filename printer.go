@@ -31,8 +31,9 @@ type Printer struct {
 
 func (p *Printer) Print(line string) (n int, err error) {
 	p.mutex.Lock()
+	defer p.mutex.Unlock()
+
 	if p.printed == p.maxRow {
-		p.mutex.Unlock()
 		return 0, nil
 	}
 
@@ -51,7 +52,6 @@ func (p *Printer) Print(line string) (n int, err error) {
 		p.printed++
 	}
 
-	p.mutex.Unlock()
 	return
 }
 
