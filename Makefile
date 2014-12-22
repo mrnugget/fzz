@@ -10,7 +10,7 @@ all: man $(EXECUTABLE)
 clean:
 	rm $(EXECUTABLE)
 
-install:
+install: man $(EXECUTABLE)
 	install -d $(DESTDIR)/bin
 	install -d $(DESTDIR)/share/man/man1
 	install $(EXECUTABLE) $(DESTDIR)/bin
