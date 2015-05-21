@@ -27,6 +27,7 @@ type Fzz struct {
 	input         []byte
 	placeholder   string
 	args          []string
+	printInput    bool
 }
 
 func (fzz *Fzz) Loop() {
@@ -49,7 +50,11 @@ func (fzz *Fzz) Loop() {
 				fzz.currentRunner.Wait()
 				fzz.tty.resetScreen()
 				if len(fzz.input) > 0 {
-					io.Copy(os.Stdout, fzz.currentRunner.stdoutbuf)
+					if fzz.currentRunner.stdoutbuf.Len() == 0 && fzz.printInput {
+						fzz.printInputStdout()
+					} else {
+						io.Copy(os.Stdout, fzz.currentRunner.stdoutbuf)
+					}
 				}
 			} else {
 				fzz.tty.resetScreen()
@@ -104,4 +109,11 @@ func (fzz *Fzz) printRunnerOutput(out <-chan string, inputlen int) {
 		fzz.printer.Print(line)
 	}
 	fzz.tty.cursorAfterPrompt(inputlen)
+}
+
+func (fzz *Fzz) printInputStdout() {
+	_, err := os.Stdout.Write(fzz.input)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

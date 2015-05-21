@@ -27,6 +27,9 @@ The command MUST include the placeholder '{{}}'.
 
 Arguments:
 
+	-p		Print interactively typed input after exiting if command produced
+			no output
+
 	-v		Print version and exit
 `
 
@@ -34,8 +37,10 @@ func printUsage() {
 	fmt.Printf(usage)
 }
 
+var flPrint = flag.Bool("p", false, "Print command input if command had no output")
+var flVersion = flag.Bool("v", false, "Print fzz version and quit")
+
 func main() {
-	flVersion := flag.Bool("v", false, "Print fzz version and quit")
 	flag.Usage = printUsage
 	flag.Parse()
 
@@ -94,6 +99,7 @@ func main() {
 		input:       []byte(input),
 		placeholder: placeholder,
 		args:        args,
+		printInput:  *flPrint,
 	}
 	fzz.Loop()
 }
