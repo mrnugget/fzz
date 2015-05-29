@@ -115,7 +115,6 @@ vimfzz() {
 
 ## TODO
 
-* Man page
 * Maybe change how fzz is printing its output to the TTY: instead of clearing the
   screen, jump to the first line, right after the input and rewrite the visible
   lines (padded so that all the columns are used and the previous output is not
