@@ -7,7 +7,7 @@ fzz \-\- run commands interactively
 \fB\fCfzz\fR [command with \fB\fC{{}}\fR placeholder]
 .SH DESCRIPTION
 .PP
-\fB\fCfoo\fR makes it possible to run command line utilities interactively, by
+\fB\fCfzz\fR makes it possible to run command line utilities interactively, by
 allowing to change the input passed to commands in an interactive interface.
 The interface shows the current output of the specified command with the
 current input. As soon as the input changes, the command is re\-run and the
@@ -20,6 +20,9 @@ The specified command MUST include the default placeholder \fB\fC{{}}\fR
 .PP
 To use an initial input value specify it inside the placeholder parts.
 .SH OPTIONS
+.TP
+\fB\fC\-p\fR
+Print interactively typed input after exiting if command produced no output
 .TP
 \fB\fC\-v\fR
 Print version and exit
