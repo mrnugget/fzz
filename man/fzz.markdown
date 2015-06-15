@@ -14,7 +14,7 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
-`foo` makes it possible to run command line utilities interactively, by
+`fzz` makes it possible to run command line utilities interactively, by
 allowing to change the input passed to commands in an interactive interface.
 The interface shows the current output of the specified command with the
 current input. As soon as the input changes, the command is re-run and the
@@ -29,6 +29,9 @@ To use an initial input value specify it inside the placeholder parts.
 
 OPTIONS
 -------
+
+`-p`
+  Print interactively typed input after exiting if command produced no output
 
 `-v`
   Print version and exit
